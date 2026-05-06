@@ -1,20 +1,29 @@
 import { useState } from 'react';
-import { Scale, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Scale, RotateCcw, AlertTriangle, LogOut } from 'lucide-react';
+import LoginPage from './components/LoginPage';
 import TenderUpload from './components/TenderUpload';
 import BidderManagement from './components/BidderManagement';
 import ResultsDashboard from './components/ResultsDashboard';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [step, setStep] = useState(1);
   const [tenderData, setTenderData] = useState(null);
   const [bidders, setBidders] = useState([]);
   const [evaluations, setEvaluations] = useState(null);
+  const [cartelAlerts, setCartAlerts] = useState([]);
 
   const resetAll = () => {
     setStep(1);
     setTenderData(null);
     setBidders([]);
     setEvaluations(null);
+    setCartAlerts([]);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    resetAll();
   };
 
   const handleTenderProcessed = (data) => {
@@ -26,6 +35,10 @@ function App() {
     setEvaluations(results);
     setStep(3);
   };
+
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
@@ -76,20 +89,25 @@ function App() {
           </div>
         </div>
 
-        {/* Reset Button */}
-        <div className="p-4 border-t border-border">
+        {/* Bottom Actions */}
+        <div className="p-4 border-t border-border space-y-2">
           <button
             onClick={resetAll}
             className="w-full py-2 px-4 flex items-center justify-center gap-2 text-sm font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
           >
             <RotateCcw size={16} /> Reset Pipeline
           </button>
+          <button
+            onClick={handleLogout}
+            className="w-full py-2 px-4 flex items-center justify-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <LogOut size={16} /> Logout
+          </button>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto h-screen">
-
 
         {step === 1 && (
           <TenderUpload
@@ -103,7 +121,11 @@ function App() {
             criteria={tenderData.criteria}
             bidders={bidders}
             setBidders={setBidders}
-            onEvaluationComplete={handleEvaluationComplete}
+            onEvaluationComplete={(evals, cartels) => {
+              setEvaluations(evals);
+              if (cartels) setCartAlerts(cartels);
+              setStep(3);
+            }}
           />
         )}
 
@@ -113,6 +135,7 @@ function App() {
             criteria={tenderData.criteria}
             evaluations={evaluations}
             setEvaluations={setEvaluations}
+            cartelAlerts={cartelAlerts}
           />
         )}
       </main>

@@ -10,7 +10,7 @@ Endpoints:
 """
 import uuid
 import logging
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
@@ -18,6 +18,7 @@ from typing import Optional, Dict, Any
 from agents.orchestrator import OrchestratorAgent
 from agents.chat_agent import chat_about_report
 from utils.anomaly_detector import detect_financial_anomalies
+from utils.kuzu_client import detect_cartels_via_graph
 from typing import List
 logger = logging.getLogger(__name__)
 
@@ -160,6 +161,23 @@ async def detect_anomalies_endpoint(
     # Save back to DB
     evaluations_db[tender_id] = updated_evals
     return {"status": "success", "evaluations": updated_evals}
+
+
+@app.post("/detect_cartels/{tender_id}")
+async def detect_cartels_endpoint(
+    tender_id: str,
+    api_key: Optional[str] = Body(None),
+):
+    """Run Kuzu Graph DB cartel detection on all bidders."""
+    if tender_id not in evaluations_db:
+        raise HTTPException(status_code=404, detail="No evaluations found for this tender.")
+        
+    evals = evaluations_db[tender_id]
+    
+    # Run the graph detection
+    cartel_alerts = detect_cartels_via_graph(tender_id, evals, api_key=api_key)
+    
+    return {"status": "success", "cartel_alerts": cartel_alerts}
 
 
 class ChatRequest(BaseModel):

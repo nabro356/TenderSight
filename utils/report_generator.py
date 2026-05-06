@@ -50,8 +50,20 @@ def _get_status_bg(status):
     return MANUAL_REVIEW_BG
 
 
+def _sanitize_text(text):
+    """Replace Unicode characters unsupported by Helvetica (e.g. ₹) with safe ASCII equivalents."""
+    if not isinstance(text, str):
+        return text
+    return text.replace('₹', 'Rs.').replace('\u20b9', 'Rs.').replace('→', '->').replace('↔', '<->').replace('✅', '[OK]').replace('❌', '[X]').replace('⚠️', '[!]').replace('🚨', '[!!]')
+
+
 def generate_pdf_report(criteria, evaluations):
     """Generate a detailed PDF evaluation report. Returns bytes."""
+    
+    # Deep-sanitize all string values in evaluations to avoid black boxes
+    import json
+    sanitized = json.loads(_sanitize_text(json.dumps(evaluations, ensure_ascii=False)))
+    evaluations = sanitized
     buf = io.BytesIO()
 
     doc = SimpleDocTemplate(

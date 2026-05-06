@@ -40,6 +40,11 @@ export const detectAnomalies = async (tenderId) => {
   return response.data;
 };
 
+export const detectCartels = async (tenderId) => {
+  const response = await api.post(`/detect_cartels/${tenderId}`);
+  return response.data;
+};
+
 export const chatAboutReport = async (tenderId, question) => {
   const response = await api.post('/chat', {
     tender_id: tenderId,

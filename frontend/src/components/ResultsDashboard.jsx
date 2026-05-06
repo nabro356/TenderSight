@@ -4,7 +4,7 @@ import { Download, MessageSquare, AlertCircle, ChevronDown, ChevronUp, FileText,
 import clsx from 'clsx';
 import { chatAboutReport, downloadReportPdf, updateEvaluation } from '../api';
 
-export default function ResultsDashboard({ tenderId, criteria, evaluations, setEvaluations }) {
+export default function ResultsDashboard({ tenderId, criteria, evaluations, setEvaluations, cartelAlerts = [] }) {
   const [expandedBidder, setExpandedBidder] = useState(null);
   const [viewingSourceFor, setViewingSourceFor] = useState(null);
   const [chatHistory, setChatHistory] = useState([]);
@@ -263,6 +263,45 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
                   <Bar dataKey="NotEligible" stackId="a" fill="#dc2626" radius={[0, 2, 2, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ═══ FRAUD DETECTION BOX (Separate from main results) ═══ */}
+      {cartelAlerts && cartelAlerts.length > 0 && (
+        <div className="border-2 border-red-500 bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-6 shadow-lg relative overflow-hidden">
+          <div className="absolute top-4 right-4 opacity-5">
+            <AlertTriangle size={140} />
+          </div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 bg-red-600 rounded-xl text-white">
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <h3 className="text-xl font-extrabold text-red-800">Suspected Fraud — Cartel Network Detected</h3>
+                <p className="text-sm text-red-600 font-medium">Graph-based entity overlap analysis flagged the following connections</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {cartelAlerts.map((alert, idx) => (
+                <div key={idx} className="bg-white p-4 rounded-xl border border-red-200 shadow-sm flex items-start gap-4">
+                  <div className="bg-red-100 p-2 rounded-lg text-red-600 mt-0.5">
+                    <AlertTriangle size={18} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900">
+                      {alert.bidder1} ↔ {alert.bidder2}
+                    </p>
+                    <p className="text-red-700 font-semibold text-sm mt-1">
+                      Share the same <span className="underline">{alert.link_type}</span>: <span className="font-mono bg-red-50 px-2 py-0.5 rounded border border-red-100">{alert.shared_entity}</span>
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      High risk of collusive bidding or shell company involvement. Manual investigation recommended.
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

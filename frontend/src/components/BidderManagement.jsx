@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Upload, FileText, CheckCircle2, AlertCircle, Plus, Users, Trash2, ArrowRight, Loader2, FileCheck } from 'lucide-react';
 import clsx from 'clsx';
-import { evaluateBidder, detectAnomalies } from '../api';
+import { evaluateBidder, detectAnomalies, detectCartels } from '../api';
 
 export default function BidderManagement({ tenderId, criteria, bidders, setBidders, onEvaluationComplete }) {
   const [activeTab, setActiveTab] = useState('upload');
@@ -116,7 +116,10 @@ export default function BidderManagement({ tenderId, criteria, bidders, setBidde
       setEvalProgress('Running statistical anomaly detection on financial bids...');
       const anomalyData = await detectAnomalies(tenderId);
       
-      onEvaluationComplete(anomalyData.evaluations || results);
+      setEvalProgress('Running Kuzu graph cartel detection...');
+      const cartelData = await detectCartels(tenderId);
+      
+      onEvaluationComplete(anomalyData.evaluations || results, cartelData.cartel_alerts || []);
     } catch (err) {
       setError(`Evaluation failed: ${err.message}`);
       setEvaluating(false);
