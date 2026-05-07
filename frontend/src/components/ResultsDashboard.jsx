@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
-import { Download, MessageSquare, AlertCircle, ChevronDown, ChevronUp, FileText, FileDown, Scale, Sparkles, X, Search, Check, AlertTriangle, Save, Loader2 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell, ReferenceLine, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ScatterChart, Scatter, ZAxis, CartesianGrid } from 'recharts';
+import { Download, MessageSquare, AlertCircle, ChevronDown, ChevronUp, FileText, FileDown, Scale, Sparkles, X, Search, Check, AlertTriangle, Save, Loader2, CheckCircle, XCircle, Moon, Sun, Users, TrendingUp, ShieldAlert, HelpCircle, Lightbulb } from 'lucide-react';
 import clsx from 'clsx';
 import { chatAboutReport, downloadReportPdf, updateEvaluation } from '../api';
 
@@ -18,7 +18,7 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
   const notEligible = bidders.filter(b => evaluations[b].overall_status === 'NOT_ELIGIBLE').length;
   const review = bidders.filter(b => evaluations[b].overall_status === 'MANUAL_REVIEW').length;
 
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+  const COLORS = ['#6366f1', '#14b8a6', '#f43f5e', '#f59e0b', '#8b5cf6', '#06b6d4']; // Clean, vibrant SaaS palette for white backgrounds
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -34,7 +34,6 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
     return dataPoint;
   });
 
-  // Chart 2: Verdict Distribution Data
   const distributionData = bidders.map(b => {
     const ev = evaluations[b];
     const total = Math.max((ev.eligible_count || 0) + (ev.not_eligible_count || 0) + (ev.manual_review_count || 0), 1);
@@ -46,6 +45,19 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
     };
   });
 
+  // Chart 3: Value Quadrant Data (Risk vs Reward)
+  const quadrantData = bidders.map((b, i) => {
+    const ev = evaluations[b];
+    const avgConf = ev.verdicts?.length ? (ev.verdicts.reduce((acc, v) => acc + parseFloat(v.confidence), 0) / ev.verdicts.length) : 0;
+    return {
+      name: b.length > 15 ? b.substring(0, 15) + '...' : b,
+      fullName: b,
+      confidence: parseFloat((avgConf * 100).toFixed(1)),
+      eligibility: ev.eligible_count || 0,
+      fill: COLORS[i % COLORS.length]
+    };
+  });
+
   const getStatusBadge = (status) => {
     if (status === 'ELIGIBLE') return <span className="badge-sm badge-eligible">ELIGIBLE</span>;
     if (status === 'NOT_ELIGIBLE') return <span className="badge-sm badge-not-eligible">NOT ELIGIBLE</span>;
@@ -53,9 +65,9 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
   };
 
   const getStatusIcon = (status) => {
-    if (status === 'ELIGIBLE') return '✅';
-    if (status === 'NOT_ELIGIBLE') return '❌';
-    return '⚠️';
+    if (status === 'ELIGIBLE') return <CheckCircle className="text-green-500" size={28} />;
+    if (status === 'NOT_ELIGIBLE') return <XCircle className="text-red-500" size={28} />;
+    return <AlertTriangle className="text-amber-500" size={28} />;
   };
 
   const getConfidenceColor = (conf) => {
@@ -182,15 +194,20 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
   }, [viewingSourceFor]);
 
   return (
-    <div className="max-w-6xl mx-auto mt-8 space-y-8" id="pdf-dashboard-content">
-      <div className="flex justify-between items-center bg-white/70 p-6 rounded-2xl border border-slate-200/60 shadow-sm backdrop-blur-md">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600">
-            <Scale size={32} />
+    <div className="max-w-6xl mx-auto mt-8 space-y-10 pb-12" id="pdf-dashboard-content">
+      
+      {/* Top Banner */}
+      <div className="flex justify-between items-center p-8 rounded-[2rem] glass-panel relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 group-hover:bg-indigo-500/20 transition-colors duration-700"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-violet-500/10 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4 group-hover:bg-violet-500/20 transition-colors duration-700"></div>
+        
+        <div className="flex items-center gap-5 relative z-10">
+          <div className="p-4 bg-white/60 shadow-sm border border-white rounded-2xl text-indigo-600 backdrop-blur-md">
+            <Scale size={36} className="drop-shadow-sm" />
           </div>
           <div>
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Evaluation Results</h2>
-            <p className="text-sm text-slate-500 font-medium mt-1 flex items-center gap-1"><Sparkles size={14} className="text-violet-400"/> TenderSight Official Report</p>
+            <h2 className="text-4xl font-extrabold text-slate-800 tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">Evaluation Results</h2>
+            <p className="text-sm text-slate-500 font-medium mt-1.5 flex items-center gap-1.5"><Sparkles size={14} className="text-violet-500"/> TenderSight Official Report</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -210,57 +227,82 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="clean-card !mb-0 text-center !p-4">
-          <div className="text-3xl font-extrabold text-blue-800">{bidders.length}</div>
-          <div className="text-xs uppercase font-bold text-slate-500 mt-1">Total</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        <div className="clean-card !mb-0 !p-5 flex items-center gap-4 border-l-4 border-l-blue-500">
+          <div className="p-3 bg-blue-50 rounded-xl text-blue-600"><Users size={22} /></div>
+          <div>
+            <div className="text-3xl font-extrabold text-slate-800 tracking-tight">{bidders.length}</div>
+            <div className="text-xs font-semibold text-slate-400 tracking-wide uppercase">Total Bidders</div>
+          </div>
         </div>
-        <div className="clean-card !mb-0 text-center !p-4">
-          <div className="text-3xl font-extrabold text-green-600">{eligible}</div>
-          <div className="text-xs uppercase font-bold text-slate-500 mt-1">Eligible</div>
+        <div className="clean-card !mb-0 !p-5 flex items-center gap-4 border-l-4 border-l-green-500">
+          <div className="p-3 bg-green-50 rounded-xl text-green-600"><CheckCircle size={22} /></div>
+          <div>
+            <div className="text-3xl font-extrabold text-green-600 tracking-tight">{eligible}</div>
+            <div className="text-xs font-semibold text-slate-400 tracking-wide uppercase">Eligible</div>
+          </div>
         </div>
-        <div className="clean-card !mb-0 text-center !p-4">
-          <div className="text-3xl font-extrabold text-red-600">{notEligible}</div>
-          <div className="text-xs uppercase font-bold text-slate-500 mt-1">Not Eligible</div>
+        <div className="clean-card !mb-0 !p-5 flex items-center gap-4 border-l-4 border-l-red-500">
+          <div className="p-3 bg-red-50 rounded-xl text-red-600"><XCircle size={22} /></div>
+          <div>
+            <div className="text-3xl font-extrabold text-red-600 tracking-tight">{notEligible}</div>
+            <div className="text-xs font-semibold text-slate-400 tracking-wide uppercase">Not Eligible</div>
+          </div>
         </div>
-        <div className="clean-card !mb-0 text-center !p-4">
-          <div className="text-3xl font-extrabold text-amber-600">{review}</div>
-          <div className="text-xs uppercase font-bold text-slate-500 mt-1">Review</div>
+        <div className="clean-card !mb-0 !p-5 flex items-center gap-4 border-l-4 border-l-amber-500">
+          <div className="p-3 bg-amber-50 rounded-xl text-amber-600"><HelpCircle size={22} /></div>
+          <div>
+            <div className="text-3xl font-extrabold text-amber-500 tracking-tight">{review}</div>
+            <div className="text-xs font-semibold text-slate-400 tracking-wide uppercase">Needs Review</div>
+          </div>
         </div>
       </div>
 
-      {/* Charts */}
+      {/* Charts Section */}
       {criteria.length > 0 && bidders.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-slate-700 flex items-center gap-2"><TrendingUp className="text-indigo-500" size={20}/> Analytics Overview</h3>
+          {/* Top Row: Verdict Distribution (Progress Bars) */}
           <div className="clean-card">
-            <h3 className="text-sm font-bold text-slate-800 mb-6 text-center">Confidence by Criterion</h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={confidenceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <XAxis dataKey="name" tick={{fontSize: 10}} interval={0} />
-                  <YAxis domain={[0, 1]} tick={{fontSize: 10}} tickFormatter={(v) => `${(v*100).toFixed(0)}%`} />
-                  <Tooltip formatter={(value) => `${(value * 100).toFixed(0)}%`} labelStyle={{color: '#1e293b', fontWeight: 'bold'}} />
-                  <Legend wrapperStyle={{fontSize: '12px'}} />
-                  {bidders.map((b, i) => (
-                    <Bar key={b} dataKey={b} fill={COLORS[i % COLORS.length]} radius={[2, 2, 0, 0]} barSize={20} />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
+            <h3 className="text-sm font-bold text-slate-800 mb-6 text-center">Verdict Distribution</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 px-4">
+              {distributionData.map((data, idx) => (
+                <div key={idx} className="relative">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-sm font-bold text-slate-700">{data.name}</span>
+                    <span className="text-xs font-semibold text-slate-500">
+                      {Math.round(data.Eligible * 100)}% Eligible
+                    </span>
+                  </div>
+                  <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex shadow-inner">
+                    <div className="h-full bg-gradient-to-r from-green-400 to-green-500 transition-all duration-1000 ease-out" style={{ width: `${data.Eligible * 100}%` }} title={`Eligible: ${(data.Eligible * 100).toFixed(1)}%`}></div>
+                    <div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-1000 ease-out" style={{ width: `${data.Review * 100}%` }} title={`Review: ${(data.Review * 100).toFixed(1)}%`}></div>
+                    <div className="h-full bg-gradient-to-r from-red-400 to-red-500 transition-all duration-1000 ease-out" style={{ width: `${data.NotEligible * 100}%` }} title={`Not Eligible: ${(data.NotEligible * 100).toFixed(1)}%`}></div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="clean-card">
-            <h3 className="text-sm font-bold text-slate-800 mb-6 text-center">Verdict Distribution</h3>
-            <div className="h-64">
+          {/* Bottom Row: Full Width Confidence Chart */}
+          <div className="clean-card group">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl"></div>
+            <h3 className="text-sm font-bold text-slate-800 mb-6 text-center relative z-10">Confidence by Criterion</h3>
+            <div className="h-72 relative z-10">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart layout="vertical" data={distributionData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                  <XAxis type="number" domain={[0, 1]} tick={{fontSize: 10}} tickFormatter={(v) => `${(v*100).toFixed(0)}%`} />
-                  <YAxis dataKey="name" type="category" tick={{fontSize: 10}} width={80} />
-                  <Tooltip formatter={(value) => `${(value * 100).toFixed(0)}%`} labelStyle={{color: '#1e293b', fontWeight: 'bold'}} />
+                <BarChart data={confidenceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" tick={{fontSize: 10, fill: '#64748b'}} interval={0} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, 1]} tick={{fontSize: 10, fill: '#64748b'}} tickFormatter={(v) => `${(v*100).toFixed(0)}%`} axisLine={false} tickLine={false} />
+                  <Tooltip 
+                    formatter={(value) => `${(value * 100).toFixed(0)}%`} 
+                    contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                    itemStyle={{ fontWeight: 'bold' }} 
+                  />
                   <Legend wrapperStyle={{fontSize: '12px'}} />
-                  <Bar dataKey="Eligible" stackId="a" fill="#16a34a" barSize={20} />
-                  <Bar dataKey="Review" stackId="a" fill="#f59e0b" />
-                  <Bar dataKey="NotEligible" stackId="a" fill="#dc2626" radius={[0, 2, 2, 0]} />
+                  {bidders.map((b, i) => (
+                    <Bar key={b} dataKey={b} fill={COLORS[i % COLORS.length]} radius={[4, 4, 0, 0]} barSize={24} />
+                  ))}
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -269,18 +311,17 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
       )}
       {/* ═══ FRAUD DETECTION BOX (Separate from main results) ═══ */}
       {cartelAlerts && cartelAlerts.length > 0 && (
-        <div className="border-2 border-red-500 bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-6 shadow-lg relative overflow-hidden">
-          <div className="absolute top-4 right-4 opacity-5">
-            <AlertTriangle size={140} />
-          </div>
+        <div className="relative overflow-hidden border-2 border-red-500/50 bg-gradient-to-br from-red-50 via-white to-orange-50 rounded-[2rem] p-8 shadow-xl shadow-red-500/10">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 animate-pulse"></div>
+          
           <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 bg-red-600 rounded-xl text-white">
-                <AlertTriangle size={24} />
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-red-600 rounded-2xl text-white shadow-lg shadow-red-600/30">
+                <AlertTriangle size={28} />
               </div>
               <div>
-                <h3 className="text-xl font-extrabold text-red-800">Suspected Fraud — Cartel Network Detected</h3>
-                <p className="text-sm text-red-600 font-medium">Graph-based entity overlap analysis flagged the following connections</p>
+                <h3 className="text-2xl font-extrabold text-red-800 tracking-tight">Suspected Fraud — Cartel Network</h3>
+                <p className="text-sm text-red-600 font-medium mt-1">Graph-based entity overlap analysis flagged the following connections</p>
               </div>
             </div>
             <div className="space-y-3">
@@ -307,36 +348,47 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
         </div>
       )}
 
-      {/* Detailed Results Modal Launcher */}
+      {/* Detailed Results */}
       <div>
-        <h3 className="text-xl font-extrabold text-slate-900 mb-6 flex items-center gap-2"><FileText className="text-indigo-500" size={24}/> Detailed Bidder Evaluation</h3>
-        <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-slate-700 mb-5 flex items-center gap-2"><FileText className="text-indigo-500" size={20}/> Detailed Bidder Evaluation</h3>
+        <div className="space-y-3">
           {bidders.map((name) => {
             const ev = evaluations[name];
+            const totalCrit = (ev.eligible_count || 0) + (ev.not_eligible_count || 0) + (ev.manual_review_count || 0);
+            const pctEligible = totalCrit > 0 ? Math.round(((ev.eligible_count || 0) / totalCrit) * 100) : 0;
+            const statusColor = ev.overall_status === 'ELIGIBLE' ? 'border-l-green-500' : ev.overall_status === 'NOT_ELIGIBLE' ? 'border-l-red-500' : 'border-l-amber-400';
             
             return (
-              <div key={name} className="clean-card !mb-0 !p-0 overflow-hidden hover:ring-2 hover:ring-indigo-500/20 transition-all cursor-pointer" onClick={() => setExpandedBidder(name)}>
-                <div className="w-full px-8 py-5 flex items-center justify-between text-left hover:bg-slate-50/50 transition-colors">
+              <div key={name} className={clsx("clean-card !mb-0 !p-0 overflow-hidden border-l-4 hover:ring-2 hover:ring-indigo-500/20 transition-all cursor-pointer", statusColor)} onClick={() => setExpandedBidder(name)}>
+                <div className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-slate-50/50 transition-colors">
                   <div className="flex items-center gap-4">
-                    <span className="text-2xl drop-shadow-sm">{getStatusIcon(ev.overall_status)}</span>
+                    {getStatusIcon(ev.overall_status)}
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-slate-900 text-xl tracking-tight block">{name}</span>
+                        <span className="font-semibold text-slate-800 text-lg">{name}</span>
                         {ev.anomaly_flag && (
                           <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-md flex items-center gap-1 border border-red-100 animate-pulse">
-                            <AlertTriangle size={12}/> ANOMALY
+                            <ShieldAlert size={12}/> ANOMALY
                           </span>
                         )}
                       </div>
-                      <span className="text-sm font-semibold text-slate-500 mt-1 block">
-                        ✅ {ev.eligible_count} / {(ev.eligible_count || 0) + (ev.not_eligible_count || 0) + (ev.manual_review_count || 0)} Criteria Satisfied
-                      </span>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-sm text-slate-500">
+                          {ev.eligible_count}/{totalCrit} criteria met
+                        </span>
+                        <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-indigo-400 to-indigo-500 rounded-full transition-all duration-700" style={{ width: `${pctEligible}%` }}></div>
+                        </div>
+                        <span className="text-xs font-semibold text-indigo-600">{pctEligible}%</span>
+                      </div>
                     </div>
-                    <span className="text-sm text-slate-500 capitalize font-medium px-3 py-1 bg-slate-100 rounded-full ml-2">— {ev.overall_status.replace('_', ' ').toLowerCase()}</span>
                   </div>
-                  <button className="text-indigo-600 font-bold text-sm bg-indigo-50 px-4 py-2 rounded-lg hover:bg-indigo-100 transition-colors">
-                    View Full Report
-                  </button>
+                  <div className="flex items-center gap-3">
+                    {getStatusBadge(ev.overall_status)}
+                    <button className="text-indigo-600 font-semibold text-sm bg-indigo-50 px-4 py-2 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1">
+                      <Search size={14}/> View Report
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -356,7 +408,7 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
               <div className="flex items-center gap-4">
                 <span className="text-3xl">{getStatusIcon(evaluations[expandedBidder].overall_status)}</span>
                 <div>
-                  <h2 className="text-2xl font-extrabold text-slate-900">{expandedBidder}</h2>
+                  <h2 className="text-2xl font-bold text-slate-900">{expandedBidder}</h2>
                   <p className="text-sm text-slate-500 font-medium">Evaluation Detail Report</p>
                 </div>
               </div>
@@ -482,25 +534,27 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
       )}
 
       {/* Chatbot */}
-      <div className="clean-card flex flex-col h-[500px]">
-        <h3 className="text-xl font-extrabold text-slate-900 mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
-          <MessageSquare className="text-violet-500" size={24}/>
-          Ask About This Report
-        </h3>
+      <div className="clean-card flex flex-col h-[500px] !p-0 overflow-hidden">
+        <div className="px-6 py-4 bg-gradient-to-r from-violet-500 to-indigo-600 flex items-center gap-3">
+          <MessageSquare className="text-white/80" size={22}/>
+          <h3 className="text-base font-semibold text-white">Ask About This Report</h3>
+        </div>
         
-        <div className="flex-1 overflow-y-auto mb-4 space-y-4 pr-2">
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {chatHistory.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-400">
-              <MessageSquare size={48} className="mb-4 opacity-20" />
-              <p>Ask questions about the evaluation results.</p>
+              <div className="p-4 bg-slate-50 rounded-full mb-4">
+                <MessageSquare size={32} className="opacity-30" />
+              </div>
+              <p className="text-sm">Ask questions about the evaluation results.</p>
               <div className="mt-6 flex flex-wrap justify-center gap-2">
                 {chatSuggestions.map((s, i) => (
                   <button 
                     key={i} 
                     onClick={() => handleChat(s)}
-                    className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-full text-xs font-medium transition-colors"
+                    className="px-3 py-1.5 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 text-slate-600 border border-slate-200 rounded-full text-xs font-medium transition-all flex items-center gap-1.5"
                   >
-                    💡 {s}
+                    <Lightbulb size={12} className="text-amber-400" /> {s}
                   </button>
                 ))}
               </div>
@@ -509,9 +563,8 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
             chatHistory.map((msg, i) => (
               <div key={i} className={clsx("flex", msg.role === 'user' ? "justify-end" : "justify-start")}>
                 <div className={clsx("max-w-[80%] rounded-2xl px-4 py-3 text-sm", 
-                  msg.role === 'user' ? "bg-blue-600 text-white rounded-tr-sm" : "bg-slate-100 text-slate-800 rounded-tl-sm"
+                  msg.role === 'user' ? "bg-indigo-600 text-white rounded-tr-sm" : "bg-white text-slate-800 rounded-tl-sm border border-slate-100 shadow-sm"
                 )}>
-                  {/* Basic markdown rendering for the chat response */}
                   <div dangerouslySetInnerHTML={{ __html: msg.content.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
                 </div>
               </div>
@@ -519,7 +572,7 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
           )}
           {chatLoading && (
             <div className="flex justify-start">
-              <div className="bg-slate-100 text-slate-500 rounded-2xl rounded-tl-sm px-4 py-3 text-sm flex items-center gap-2">
+              <div className="bg-white text-slate-500 rounded-2xl rounded-tl-sm px-4 py-3 text-sm flex items-center gap-2 border border-slate-100 shadow-sm">
                 <Loader2 className="animate-spin" size={16} /> Thinking...
               </div>
             </div>
@@ -527,7 +580,7 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
           <div ref={chatEndRef} />
         </div>
 
-        <div className="pt-4 border-t border-slate-100">
+        <div className="p-4 border-t border-slate-100 bg-slate-50/50">
           <form 
             onSubmit={(e) => { e.preventDefault(); handleChat(chatInput); }}
             className="flex gap-2"
@@ -536,14 +589,14 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
               type="text" 
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              placeholder="Ask a question..." 
-              className="flex-1 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+              placeholder="Ask a question about this evaluation..." 
+              className="flex-1 p-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-300 outline-none text-sm transition-all"
               disabled={chatLoading}
             />
             <button 
               type="submit" 
               disabled={!chatInput.trim() || chatLoading}
-              className="px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center"
+              className="px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               Send
             </button>

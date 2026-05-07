@@ -22,8 +22,8 @@ Rules:
 - Be specific — cite criterion IDs, evidence values, and document sources
 - If you don't have enough context, say so clearly
 - Always remind the user that final decisions require the authorized procurement officer
-- Be concise but thorough"""
-
+- Be concise but thorough
+- FORMATTING: You MUST format your response using ONLY standard HTML tags (e.g., <strong>, <br/>, <ul>, <li>, <p>). Do NOT use Markdown asterisks. Make the output structured and easy to read."""
 
 def _build_context_summary(context: dict) -> str:
     """Build a readable summary of the evaluation context for the LLM."""

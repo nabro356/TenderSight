@@ -74,10 +74,10 @@ def detect_financial_anomalies(evaluations: dict, api_key: str = None) -> dict:
                 val = valid_bids[bidder]
                 z_score = (val - mean_bid) / stdev_bid
                 
-                if z_score < -1.5:
+                if z_score < -1.1:
                     evaluations[bidder]["anomaly_flag"] = True
                     evaluations[bidder]["anomaly_reason"] = f"Abnormally Low Bid (Z-score: {z_score:.2f}). This is statistically significantly lower than the average bid of {mean_bid:,.2f} INR and poses a potential quality or feasibility risk."
-                elif z_score > 1.5:
+                elif z_score > 1.1:
                     evaluations[bidder]["anomaly_flag"] = True
                     evaluations[bidder]["anomaly_reason"] = f"Abnormally High Bid (Z-score: {z_score:.2f}). This bid is significantly higher than the market median for this tender."
                     

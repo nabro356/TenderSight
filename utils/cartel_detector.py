@@ -43,11 +43,12 @@ def detect_cartels_via_graph(tender_id: str, evaluations: dict, api_key: str = N
         ]
 
         try:
-            resp = try_invoke_with_fallback(messages, api_key=api_key)
-            start = resp.find('{')
-            end = resp.rfind('}') + 1
+            resp, _ = try_invoke_with_fallback(messages, api_key=api_key)
+            content_str = resp.content
+            start = content_str.find('{')
+            end = content_str.rfind('}') + 1
             if start != -1 and end > 0:
-                data = json.loads(resp[start:end])
+                data = json.loads(content_str[start:end])
                 metadata_map[bidder] = data
                 logger.info(f"Extracted metadata for {bidder}: {data}")
         except Exception as e:
@@ -68,7 +69,7 @@ def detect_cartels_via_graph(tender_id: str, evaluations: dict, api_key: str = N
             a2 = (m2.get("address") or "").strip().lower()
 
             # Check Director overlap
-            if d1 and d2 and d1 == d2:
+            if d1 and d2 and (d1 in d2 or d2 in d1):
                 cartel_alerts.append({
                     "bidder1": b1,
                     "bidder2": b2,
@@ -77,7 +78,7 @@ def detect_cartels_via_graph(tender_id: str, evaluations: dict, api_key: str = N
                 })
 
             # Check Address overlap
-            if a1 and a2 and a1 == a2:
+            if a1 and a2 and (a1 in a2 or a2 in a1):
                 cartel_alerts.append({
                     "bidder1": b1,
                     "bidder2": b2,

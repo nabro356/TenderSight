@@ -346,22 +346,7 @@ def generate_pdf_report(criteria, evaluations):
         story.append(Spacer(1, 0.2*inch))
         story.append(PageBreak())
 
-    # ═══ AUDIT TRAIL ═══
-    story.append(Paragraph("Audit Trail", styles['RSection']))
-    audit_data = [
-        ['Parameter', 'Value'],
-        ['Evaluation Engine', 'TenderSight v1.0'],
-        ['LLM Model', 'Sovereign LLM (On-Premise, NVIDIA Inference)'],
-        ['Evaluation Protocol', '3-Pass (Deterministic -> LLM Reasoning -> LLM Reviewer)'],
-        ['Evidence Knowledge Graph', 'Neo4j (append-only, versioned)'],
-        ['Total LLM Calls', str(len(evaluations) * len(criteria) * 3)],
-        ['Timestamp', datetime.now().isoformat()],
-        ['Data Sovereignty', 'All processing on-premise; no data sent to external APIs'],
-    ]
-    audit_table = Table(audit_data, colWidths=[2.5*inch, 3.8*inch])
-    audit_table.setStyle(_base_table_style())
-    story.append(audit_table)
-    story.append(Spacer(1, 0.3*inch))
+
 
     story.append(Paragraph("Disclaimer", styles['RSubsection']))
     story.append(Paragraph(
