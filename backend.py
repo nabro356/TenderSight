@@ -18,7 +18,7 @@ from typing import Optional, Dict, Any
 from agents.orchestrator import OrchestratorAgent
 from agents.chat_agent import chat_about_report
 from utils.anomaly_detector import detect_financial_anomalies
-from utils.kuzu_client import detect_cartels_via_graph
+from utils.cartel_detector import detect_cartels_via_graph
 from typing import List
 logger = logging.getLogger(__name__)
 
