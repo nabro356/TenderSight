@@ -1,0 +1,31 @@
+services:
+  # 1. FastAPI Backend Service
+  - type: web
+    name: tendersight-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    # Uvicorn will automatically bind to the Render-provided $PORT
+    startCommand: uvicorn backend:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: GEMINI_API_KEY
+        sync: false # You must set this manually in the Render Dashboard
+
+  # 2. React/Vite Frontend Service
+  - type: web
+    name: tendersight-frontend
+    env: static
+    # Point Render to the frontend directory
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: 20.0.0
+      # Automatically link the React app's API calls to the deployed backend URL
+      - key: VITE_API_URL
+        fromService:
+          name: tendersight-backend
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
