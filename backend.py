@@ -433,6 +433,50 @@ async def get_pdf_report(tender_id: str):
         raise HTTPException(status_code=500, detail="Failed to generate PDF report.")
 
 
+@app.get("/tenders/summary")
+async def get_tenders_summary():
+    """Get a high-level summary of all active tenders for the mobile dashboard."""
+    tenders = await db_client.get_all_tenders()
+    summary = []
+    
+    # Get all cartel alerts in the graph
+    all_cartel_alerts = await db_client.query_cartel_graph()
+    
+    for t_id, t_data in tenders.items():
+        evals = await db_client.get_evaluations(t_id)
+        
+        # Calculate L1 Bidder
+        l1_bidder = "Pending Evaluation"
+        l1_amount = float('inf')
+        
+        for bidder, ev in evals.items():
+            if ev.get("overall_status") in ["ELIGIBLE", "MANUAL_REVIEW"] and ev.get("financial_bid"):
+                try:
+                    bid = float(ev["financial_bid"])
+                    if bid < l1_amount:
+                        l1_amount = bid
+                        l1_bidder = bidder
+                except:
+                    pass
+                    
+        # Filter alerts that apply to bidders in this specific tender
+        tender_alerts = [
+            a for a in all_cartel_alerts 
+            if a.get("bidder1") in evals or a.get("bidder2") in evals
+        ]
+        
+        summary.append({
+            "id": t_id,
+            "title": t_data.get("filename", f"Tender {t_id}"),
+            "l1_bidder": l1_bidder,
+            "l1_amount": l1_amount if l1_amount != float('inf') else None,
+            "has_alert": len(tender_alerts) > 0,
+            "cartel_alerts": tender_alerts
+        })
+        
+    return {"tenders": summary}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

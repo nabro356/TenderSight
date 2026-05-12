@@ -7,6 +7,33 @@ import { ShieldCheck, ArrowRight, AlertTriangle, Scale, CheckCircle2, FileText, 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('login');
   const [selectedTender, setSelectedTender] = useState(null);
+  const [tenders, setTenders] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Set this to your live Render backend URL!
+  const API_BASE_URL = "http://localhost:8000";
+
+  useEffect(() => {
+    if (currentScreen === 'dashboard') {
+      fetchTenders();
+    }
+  }, [currentScreen]);
+
+  const fetchTenders = async () => {
+    setLoading(true);
+    try {
+      // 10.0.2.2 is required for Android Emulator to hit localhost
+      const host = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : API_BASE_URL;
+      const res = await fetch(`${host}/tenders/summary`);
+      const data = await res.json();
+      setTenders(data.tenders || []);
+    } catch (e) {
+      console.error(e);
+      Alert.alert("Connection Error", "Could not reach TenderSight backend. Check your API_BASE_URL.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // --- Screens ---
   
@@ -43,7 +70,7 @@ export default function App() {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Welcome, Joint Secretary</Text>
-            <Text style={styles.subGreeting}>3 Tenders Awaiting Approval</Text>
+            <Text style={styles.subGreeting}>{tenders.length} Tenders Awaiting Approval</Text>
           </View>
           <TouchableOpacity onPress={() => setCurrentScreen('login')} style={styles.logoutBtn}>
             <LogOut color="#64748b" size={20} />
@@ -51,55 +78,48 @@ export default function App() {
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollArea}>
+          {loading && <Text style={{textAlign: 'center', marginTop: 20, color: '#64748b'}}>Loading active tenders...</Text>}
+          {!loading && tenders.length === 0 && <Text style={{textAlign: 'center', marginTop: 20, color: '#64748b'}}>No active tenders awaiting approval.</Text>}
           
-          {/* Mock Tender 1 (Has Cartel Alert) */}
-          <TouchableOpacity 
-            style={[styles.card, styles.alertCardBorder]}
-            onPress={() => {
-              setSelectedTender({ id: 'TND-8A92B', l1: 'Alpha Corp', bid: '5,00,000', alert: true });
-              setCurrentScreen('signoff');
-            }}
-          >
-            <View style={styles.cardHeader}>
-              <Text style={styles.tenderId}>TND-8A92B (IT Hardware)</Text>
-              <View style={styles.alertBadge}>
-                <AlertTriangle color="#dc2626" size={12} />
-                <Text style={styles.alertText}>CARTEL RISK</Text>
+          {!loading && tenders.map((tender) => (
+            <TouchableOpacity 
+              key={tender.id}
+              style={[styles.card, tender.has_alert ? styles.alertCardBorder : null]}
+              onPress={() => {
+                setSelectedTender({ 
+                  id: tender.id, 
+                  title: tender.title,
+                  l1: tender.l1_bidder, 
+                  bid: tender.l1_amount ? tender.l1_amount.toLocaleString() : 'Pending', 
+                  alert: tender.has_alert,
+                  cartel_alerts: tender.cartel_alerts
+                });
+                setCurrentScreen('signoff');
+              }}
+            >
+              <View style={styles.cardHeader}>
+                <Text style={styles.tenderId} numberOfLines={1}>{tender.title}</Text>
+                {tender.has_alert ? (
+                  <View style={styles.alertBadge}>
+                    <AlertTriangle color="#dc2626" size={12} />
+                    <Text style={styles.alertText}>CARTEL RISK</Text>
+                  </View>
+                ) : (
+                  <View style={styles.cleanBadge}>
+                    <CheckCircle2 color="#059669" size={12} />
+                    <Text style={styles.cleanText}>CLEAN</Text>
+                  </View>
+                )}
               </View>
-            </View>
-            <Text style={styles.l1Text}>L1 Bidder: <Text style={styles.bold}>Alpha Corp</Text></Text>
-            <Text style={styles.bidAmount}>Rs. 5,00,000</Text>
-            
-            <View style={styles.cardFooter}>
-              <Text style={styles.footerActionText}>Review Exceptions</Text>
-              <ChevronRight color="#4f46e5" size={16} />
-            </View>
-          </TouchableOpacity>
-
-          {/* Mock Tender 2 (Clean) */}
-          <TouchableOpacity 
-            style={styles.card}
-            onPress={() => {
-              setSelectedTender({ id: 'TND-9B11C', l1: 'TechSolutions Ltd', bid: '12,40,000', alert: false });
-              setCurrentScreen('signoff');
-            }}
-          >
-            <View style={styles.cardHeader}>
-              <Text style={styles.tenderId}>TND-9B11C (Cloud Services)</Text>
-              <View style={styles.cleanBadge}>
-                <CheckCircle2 color="#059669" size={12} />
-                <Text style={styles.cleanText}>CLEAN</Text>
+              <Text style={styles.l1Text}>L1 Bidder: <Text style={styles.bold}>{tender.l1_bidder}</Text></Text>
+              {tender.l1_amount !== null && <Text style={styles.bidAmount}>Rs. {tender.l1_amount.toLocaleString('en-IN')}</Text>}
+              
+              <View style={styles.cardFooter}>
+                <Text style={styles.footerActionText}>{tender.has_alert ? 'Review Exceptions' : 'Ready for Sign-off'}</Text>
+                <ChevronRight color="#4f46e5" size={16} />
               </View>
-            </View>
-            <Text style={styles.l1Text}>L1 Bidder: <Text style={styles.bold}>TechSolutions Ltd</Text></Text>
-            <Text style={styles.bidAmount}>Rs. 12,40,000</Text>
-            
-            <View style={styles.cardFooter}>
-              <Text style={styles.footerActionText}>Ready for Sign-off</Text>
-              <ChevronRight color="#4f46e5" size={16} />
-            </View>
-          </TouchableOpacity>
-
+            </TouchableOpacity>
+          ))}
         </ScrollView>
       </SafeAreaView>
     );
@@ -160,7 +180,11 @@ export default function App() {
               <AlertTriangle color="#dc2626" size={20} />
               <View style={{flex: 1, marginLeft: 12}}>
                 <Text style={styles.warningTitle}>Cartel Risk Overruled</Text>
-                <Text style={styles.warningDesc}>Junior officer noted that Alpha Corp and Beta Tech share a director, but authorized an override due to specialized vendor requirement.</Text>
+                <Text style={styles.warningDesc}>
+                  {selectedTender.cartel_alerts?.[0] 
+                    ? `Junior officer authorized override despite ${selectedTender.cartel_alerts[0].bidder1} and ${selectedTender.cartel_alerts[0].bidder2} sharing a ${selectedTender.cartel_alerts[0].link_type}.` 
+                    : `Junior officer noted cartel risks but authorized an override.`}
+                </Text>
               </View>
             </View>
           )}
