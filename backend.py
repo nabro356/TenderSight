@@ -477,6 +477,22 @@ async def get_tenders_summary():
     return {"tenders": summary}
 
 
+@app.get("/tenders/{tender_id}")
+async def get_tender_details(tender_id: str):
+    """Get full details of a specific tender including all bidder evaluations."""
+    tender = await db_client.get_tender(tender_id)
+    if not tender:
+        raise HTTPException(status_code=404, detail=f"Tender {tender_id} not found")
+        
+    evals = await db_client.get_evaluations(tender_id)
+    return {
+        "tender_id": tender_id,
+        "filename": tender.get("filename"),
+        "criteria_count": len(tender.get("criteria", [])),
+        "evaluations": evals
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
