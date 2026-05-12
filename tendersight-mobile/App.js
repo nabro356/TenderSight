@@ -11,7 +11,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
 
   // Set this to your live Render backend URL!
-  const API_BASE_URL = "http://localhost:8000";
+  const API_BASE_URL = "https://tendersight-jv14.onrender.com";
 
   useEffect(() => {
     if (currentScreen === 'dashboard') {
