@@ -58,6 +58,13 @@ ELIGIBLE — Use ONLY when ALL of these are true:
   • The evidence is from a credible source (audited financials, government certificate, etc.)
   • You can copy-paste an exact quote that proves this
 
+═══ Phase 2: MSME / STARTUP EXEMPTION ENGINE ═══
+Under Gov of India rules, MSMEs and recognized Startups are EXEMPT from Prior Turnover, Prior Experience, and EMD criteria.
+If the bidder document contains a valid "Udyam Registration Certificate", "MSME Certificate", or "Startup India / DIPP Certificate":
+  1. For Turnover, Experience, and EMD criteria, you MUST mark them as ELIGIBLE.
+  2. The reasoning MUST explicitly state: "Exempt under MSME/Startup policy."
+  3. The evidence_value must cite their Udyam/Startup registration number if visible.
+
 ═══ EXAMPLES OF CORRECT STRICTNESS ═══
   • Criterion: "Annual turnover >= 5 Crore" | Document says: "Our turnover is strong" → NOT_ELIGIBLE (no number)
   • Criterion: "Annual turnover >= 5 Crore" | Document says: "Turnover: Rs. 4.8 Crore" → NOT_ELIGIBLE (below threshold)

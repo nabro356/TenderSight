@@ -46,46 +46,29 @@ app.add_middleware(
 
 import json
 import os
-
-# --- Persistence Layer (survives Render cold starts) ---
-DATA_DIR = os.path.join(os.path.dirname(__file__), ".data")
-os.makedirs(DATA_DIR, exist_ok=True)
-TENDERS_FILE = os.path.join(DATA_DIR, "tenders.json")
-EVALUATIONS_FILE = os.path.join(DATA_DIR, "evaluations.json")
-
-def _load_json(path):
-    if os.path.exists(path):
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return {}
-    return {}
-
-def _save_json(path, data):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False)
+from db.surreal_client import db_client
 
 # Load persisted state on startup
-tenders_db: Dict[str, dict] = _load_json(TENDERS_FILE)
-evaluations_db: Dict[str, dict] = _load_json(EVALUATIONS_FILE)
+@app.on_event("startup")
+async def startup_event():
+    await db_client.connect()
 
-def save_tenders():
-    _save_json(TENDERS_FILE, tenders_db)
-
-def save_evaluations():
-    _save_json(EVALUATIONS_FILE, evaluations_db)
+@app.on_event("shutdown")
+async def shutdown_event():
+    await db_client.close()
 
 orchestrator = OrchestratorAgent()
 
 
 @app.get("/")
-def health_check():
+async def health_check():
+    tenders = await db_client.get_all_tenders()
     return {
         "status": "ok",
         "service": "TenderSight AI",
         "version": "2.0.0",
-        "active_tenders": len(tenders_db),
+        "db_connected": db_client.connected,
+        "active_tenders": len(tenders),
     }
 
 
@@ -108,13 +91,13 @@ async def create_tender(
             api_key=api_key,
         )
 
-        tenders_db[tender_id] = {
+        tender_data = {
             "filename": file.filename,
             "criteria": result["criteria"],
             "raw_text": result["raw_text"],
             "ocr_engine": result["ocr_engine"],
         }
-        save_tenders()
+        await db_client.save_tender(tender_id, tender_data)
 
         return {
             "status": "created",
@@ -137,7 +120,8 @@ async def evaluate_bidder_endpoint(
     api_key: Optional[str] = Form(None),
 ):
     """Evaluate a bidder document against stored tender criteria."""
-    if tender_id not in tenders_db:
+    tender = await db_client.get_tender(tender_id)
+    if not tender:
         raise HTTPException(status_code=404, detail=f"Tender {tender_id} not found")
 
     file_bytes_list = []
@@ -147,7 +131,7 @@ async def evaluate_bidder_endpoint(
         file_bytes_list.append(content)
         file_names_list.append(f.filename)
         
-    criteria = tenders_db[tender_id]["criteria"]
+    criteria = tender["criteria"]
 
     try:
         # Offload synchronous orchestrator to threadpool
@@ -161,10 +145,7 @@ async def evaluate_bidder_endpoint(
         )
 
         # Store for chat context
-        if tender_id not in evaluations_db:
-            evaluations_db[tender_id] = {}
-        evaluations_db[tender_id][bidder_id] = evaluation
-        save_evaluations()
+        await db_client.save_evaluation(tender_id, bidder_id, evaluation)
 
         return {"status": "success", "result": evaluation}
     except Exception as e:
@@ -179,11 +160,7 @@ async def update_evaluation_endpoint(
     evaluation: Dict[str, Any] = Body(...),
 ):
     """Overwrite an evaluation with human overrides."""
-    if tender_id not in evaluations_db:
-        evaluations_db[tender_id] = {}
-        
-    evaluations_db[tender_id][bidder_id] = evaluation
-    save_evaluations()
+    await db_client.save_evaluation(tender_id, bidder_id, evaluation)
     return {"status": "success", "message": "Evaluation updated successfully."}
 
 
@@ -193,10 +170,9 @@ async def detect_anomalies_endpoint(
     api_key: Optional[str] = Body(None),
 ):
     """Run statistical anomaly detection on all bidders for a tender."""
-    if tender_id not in evaluations_db:
+    evals = await db_client.get_evaluations(tender_id)
+    if not evals:
         raise HTTPException(status_code=404, detail="No evaluations found for this tender.")
-        
-    evals = evaluations_db[tender_id]
     
     # Offload to threadpool
     updated_evals = await run_in_threadpool(
@@ -204,8 +180,9 @@ async def detect_anomalies_endpoint(
     )
     
     # Save back to DB
-    evaluations_db[tender_id] = updated_evals
-    save_evaluations()
+    for bidder, data in updated_evals.items():
+        await db_client.save_evaluation(tender_id, bidder, data)
+        
     return {"status": "success", "evaluations": updated_evals}
 
 
@@ -214,16 +191,19 @@ async def detect_cartels_endpoint(
     tender_id: str,
     api_key: Optional[str] = Body(None),
 ):
-    """Run cartel detection on all bidders."""
-    if tender_id not in evaluations_db:
+    """Run cartel detection using the graph database."""
+    evals = await db_client.get_evaluations(tender_id)
+    if not evals:
         raise HTTPException(status_code=404, detail="No evaluations found for this tender.")
         
-    evals = evaluations_db[tender_id]
+    # In Phase 2, we query the graph directly for links created during evaluation saves
+    cartel_alerts = await db_client.query_cartel_graph()
     
-    # Offload to threadpool
-    cartel_alerts = await run_in_threadpool(
-        detect_cartels_via_graph, tender_id, evals, api_key,
-    )
+    # Optional: if no graph backend connection, fall back to the in-memory detector
+    if not db_client.connected:
+        cartel_alerts = await run_in_threadpool(
+            detect_cartels_via_graph, tender_id, evals, api_key,
+        )
     
     return {"status": "success", "cartel_alerts": cartel_alerts}
 
@@ -257,10 +237,11 @@ async def evaluate_all_bidders(
     This endpoint splits them up, evaluates all bidders in parallel,
     then runs anomaly + cartel detection.
     """
-    if tender_id not in tenders_db:
+    tender = await db_client.get_tender(tender_id)
+    if not tender:
         raise HTTPException(status_code=404, detail=f"Tender {tender_id} not found")
 
-    criteria = tenders_db[tender_id]["criteria"]
+    criteria = tender["criteria"]
 
     # --- Split the flat file list into per-bidder groups ---
     all_file_bytes = []
@@ -310,30 +291,31 @@ async def evaluate_all_bidders(
                 "error": str(e),
             }
 
-    # Store all evaluations
-    if tender_id not in evaluations_db:
-        evaluations_db[tender_id] = {}
-    evaluations_db[tender_id].update(results)
-    save_evaluations()
+    # Store all evaluations in DB
+    for name, result in results.items():
+        await db_client.save_evaluation(tender_id, name, result)
 
     # --- Run anomaly + cartel detection on the full set ---
+    db_evals = await db_client.get_evaluations(tender_id)
     try:
         updated_evals = await run_in_threadpool(
             detect_financial_anomalies,
-            evaluations_db[tender_id],
+            db_evals,
             api_key=api_key,
         )
-        evaluations_db[tender_id] = updated_evals
-        save_evaluations()
+        for bidder, data in updated_evals.items():
+            await db_client.save_evaluation(tender_id, bidder, data)
     except Exception as e:
         logger.warning("Anomaly detection failed: %s", e)
-        updated_evals = evaluations_db[tender_id]
+        updated_evals = db_evals
 
     try:
-        cartel_alerts = await run_in_threadpool(
-            detect_cartels_via_graph,
-            tender_id, evaluations_db[tender_id], api_key,
-        )
+        cartel_alerts = await db_client.query_cartel_graph()
+        if not db_client.connected:
+            cartel_alerts = await run_in_threadpool(
+                detect_cartels_via_graph,
+                tender_id, updated_evals, api_key,
+            )
     except Exception as e:
         logger.warning("Cartel detection failed: %s", e)
         cartel_alerts = []
@@ -356,28 +338,28 @@ async def evaluate_stream(
     The frontend connects to this endpoint via EventSource.
     The backend pushes events as each bidder finishes evaluation.
     """
-    if tender_id not in tenders_db:
+    tender = await db_client.get_tender(tender_id)
+    if not tender:
         raise HTTPException(status_code=404, detail=f"Tender {tender_id} not found")
 
     async def event_generator():
         """Yield SSE events as evaluations are stored."""
         import json as _json
-        evals = evaluations_db.get(tender_id, {})
+        evals = await db_client.get_evaluations(tender_id)
         known = set(evals.keys())
 
         # Send current state first
-        yield f"data: {_json.dumps({'type': 'init', 'completed': list(known)})}"
-        yield "\n\n"
+        yield f"data: {_json.dumps({'type': 'init', 'completed': list(known)})}\n\n"
 
         # Poll for new completions (max 10 min timeout)
         for _ in range(600):
             await asyncio.sleep(1)
-            current = set(evaluations_db.get(tender_id, {}).keys())
+            current_evals = await db_client.get_evaluations(tender_id)
+            current = set(current_evals.keys())
             new_bidders = current - known
             for bidder in new_bidders:
-                ev = evaluations_db[tender_id][bidder]
-                yield f"data: {_json.dumps({'type': 'bidder_complete', 'bidder': bidder, 'status': ev.get('overall_status', 'UNKNOWN')})}"
-                yield "\n\n"
+                ev = current_evals[bidder]
+                yield f"data: {_json.dumps({'type': 'bidder_complete', 'bidder': bidder, 'status': ev.get('overall_status', 'UNKNOWN')})}\n\n"
             known = current
 
     return StreamingResponse(
@@ -396,12 +378,13 @@ class ChatRequest(BaseModel):
 @app.post("/chat")
 async def chat_endpoint(req: ChatRequest):
     """Ask questions about evaluation results."""
-    if req.tender_id not in tenders_db:
+    tender = await db_client.get_tender(req.tender_id)
+    if not tender:
         raise HTTPException(status_code=404, detail=f"Tender {req.tender_id} not found")
 
     context = {
-        "criteria": tenders_db[req.tender_id]["criteria"],
-        "evaluations": evaluations_db.get(req.tender_id, {}),
+        "criteria": tender["criteria"],
+        "evaluations": await db_client.get_evaluations(req.tender_id),
     }
 
     try:
@@ -422,11 +405,12 @@ from utils.report_generator import generate_pdf_report
 @app.get("/report/{tender_id}")
 async def get_pdf_report(tender_id: str):
     """Download the official PDF evaluation report."""
-    if tender_id not in tenders_db:
+    tender = await db_client.get_tender(tender_id)
+    if not tender:
         raise HTTPException(status_code=404, detail=f"Tender {tender_id} not found")
         
-    criteria = tenders_db[tender_id]["criteria"]
-    evaluations = evaluations_db.get(tender_id, {})
+    criteria = tender["criteria"]
+    evaluations = await db_client.get_evaluations(tender_id)
     
     if not evaluations:
         raise HTTPException(status_code=400, detail="No evaluations completed yet for this tender.")

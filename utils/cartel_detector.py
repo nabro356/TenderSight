@@ -9,9 +9,10 @@ EXTRACT_PROMPT = """You are a Corporate Metadata Extractor.
 Given the text from a bidder's tender submission, extract the following corporate details:
 - director_name: The name of the main Director / Managing Director / CEO / Authorized Signatory
 - address: The Registered Office Address or Corporate Address
+- financial_bid: The final financial bid amount or total cost proposed by the bidder (in INR). If found, return ONLY the numeric value (e.g. 500000). If not found, return null.
 
 Return ONLY a valid JSON object like:
-{"director_name": "Rajesh Kumar", "address": "Plot 42, Tech Park, Hyderabad"}
+{"director_name": "Rajesh Kumar", "address": "Plot 42, Tech Park, Hyderabad", "financial_bid": 500000}
 
 If a field is not found, use null. Do NOT invent data.
 """
@@ -50,6 +51,9 @@ def detect_cartels_via_graph(tender_id: str, evaluations: dict, api_key: str = N
             if start != -1 and end > 0:
                 data = json.loads(content_str[start:end])
                 metadata_map[bidder] = data
+                # Mutate evaluation to include metadata for DB and UI
+                ev["corporate_metadata"] = data
+                ev["financial_bid"] = data.get("financial_bid")
                 logger.info(f"Extracted metadata for {bidder}: {data}")
         except Exception as e:
             logger.error(f"Metadata extraction failed for {bidder}: {e}")

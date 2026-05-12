@@ -32,3 +32,6 @@ matplotlib>=3.8.0
 # FastAPI Backend
 fastapi>=0.100.0
 uvicorn>=0.20.0
+
+# Database (Phase 2)
+surrealdb>=2.0.0
