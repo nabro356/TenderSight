@@ -1,0 +1,28 @@
+Comprehensive Analytics & Confidence Scoring
+Verdict Distribution:
+Real-time eligibility tracking across multiple projects and 
+bidders.
+Confidence by Criterion:
+Granular scoring of AI certainty for technical, financial, and 
+compliance criteria.
+Step 5 Collaborative Human-in-the-Loop Review
+Human Review Trigger
+The system proactively flags ambiguous cases for manual 
+validation to ensure absolute accuracy in edge-case 
+scenarios.
+Evidence Transparency
+Relevant sections in bidder documents are automatically 
+highlighted, allowing reviewers to verify data points 
+instantly without manual searching.
+Dual-Engine Fraud Analysis
+Financial Anomaly Detection
+Identifies and flags abnormally low financial bids by 
+calculating Z-scores across the bidder pool to detect 
+outliers.
+Cartel Network Analysis
+Analyzes graph-based entity relationships to uncover 
+conflicting interests and clandestine cartel behavior.
+System Architecture
+    Website :  https://tendersight-frontend.onrender.com/
+ Username : admin
+Password : tendersight2026

@@ -1,0 +1,297 @@
+/* TenderSight — Professional Light Theme */
+
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* Global Overrides */
+.stApp {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    background-color: #f1f5f9 !important;
+}
+
+/* Hide Streamlit branding */
+#MainMenu, footer, header {visibility: hidden;}
+
+/* Main container */
+.block-container {
+    padding: 2rem 3rem !important;
+    max-width: 1200px !important;
+}
+
+/* Hero Header */
+.hero-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #1e40af 100%);
+    color: white;
+    padding: 2rem 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
+}
+
+.hero-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.02em;
+}
+
+.hero-header p {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin: 0;
+    font-weight: 300;
+}
+
+/* Step Progress Bar */
+.step-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding: 1.25rem 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid #e2e8f0;
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #94a3b8;
+}
+
+.step-item.active {
+    color: #1e40af;
+    font-weight: 600;
+}
+
+.step-item.completed {
+    color: #16a34a;
+}
+
+.step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    background: #f1f5f9;
+    color: #94a3b8;
+    border: 2px solid #e2e8f0;
+}
+
+.step-item.active .step-number {
+    background: #1e40af;
+    color: white;
+    border-color: #1e40af;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
+}
+
+.step-item.completed .step-number {
+    background: #16a34a;
+    color: white;
+    border-color: #16a34a;
+}
+
+/* Cards */
+.eval-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: box-shadow 0.2s ease;
+}
+
+.eval-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Verdict Badges */
+.verdict-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+}
+
+.verdict-eligible {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.verdict-not-eligible {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.verdict-manual-review {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+/* Criterion Type Badges */
+.criterion-type {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.type-financial { background: #eff6ff; color: #1d4ed8; }
+.type-experience { background: #faf5ff; color: #7c3aed; }
+.type-compliance { background: #ecfdf5; color: #059669; }
+.type-technical { background: #fff7ed; color: #c2410c; }
+
+/* Evidence Chain */
+.evidence-chain {
+    background: #f8fafc;
+    border-left: 3px solid #3b82f6;
+    padding: 1rem 1.25rem;
+    margin: 0.75rem 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.875rem;
+}
+
+.evidence-chain .doc-ref {
+    font-weight: 600;
+    color: #1e40af;
+    font-size: 0.8rem;
+}
+
+.evidence-chain .value {
+    color: #1e293b;
+    font-weight: 500;
+}
+
+/* Reasoning Box */
+.reasoning-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 0.75rem 0;
+    font-size: 0.875rem;
+    color: #475569;
+    line-height: 1.6;
+}
+
+/* Stats Cards */
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Bidder Summary Card */
+.bidder-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.bidder-card.eligible { border-left-color: #16a34a; }
+.bidder-card.not-eligible { border-left-color: #dc2626; }
+.bidder-card.manual-review { border-left-color: #d97706; }
+
+/* Confidence Bar */
+.confidence-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    margin-top: 0.5rem;
+}
+
+.confidence-bar {
+    height: 6px;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+/* Sidebar Styling */
+section[data-testid="stSidebar"] {
+    background: white !important;
+    border-right: 1px solid #e2e8f0 !important;
+}
+
+section[data-testid="stSidebar"] .block-container {
+    padding: 2rem 1.5rem !important;
+}
+
+/* Button Styling */
+.stButton>button {
+    background: linear-gradient(135deg, #1e40af, #2563eb) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 0.6rem 1.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2) !important;
+}
+
+.stButton>button:hover {
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Metric overrides */
+div[data-testid="metric-container"] {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* Expander styling */
+.streamlit-expanderHeader {
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    color: #1e293b !important;
+}
+
+/* Info/Warning boxes */
+.stAlert {
+    border-radius: 10px !important;
+}
