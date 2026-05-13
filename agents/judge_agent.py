@@ -203,34 +203,7 @@ Evaluate each criterion. Return a JSON array."""),
             v["criterion_text"] = str(crit_map[cid].get("text") or "")
             v["criterion_type"] = str(crit_map[cid].get("type") or "")
 
-    # ─── Reviewer pass (only for borderline verdicts) ───
-    borderline = [v for v in verdicts if v["status"] == "MANUAL_REVIEW"]
-
-    if borderline:
-        if progress_callback:
-            progress_callback(f"🔎 Reviewing {len(borderline)} borderline verdicts...")
-
-        try:
-            review_msgs = [
-                SystemMessage(content=REVIEWER_PROMPT),
-                HumanMessage(content=f"BIDDER: {bidder_name}\n\nVERDICTS:\n{json.dumps(borderline, indent=2, default=str)}"),
-            ]
-            review_resp, _ = try_invoke_with_fallback(
-                review_msgs, api_key, max_retries=2, progress_callback=progress_callback,
-            )
-            review_results = _safe_parse(review_resp.content)
-
-            if isinstance(review_results, list):
-                rmap = {str(r.get("criterion_id") or ""): r for r in review_results}
-                for v in verdicts:
-                    r = rmap.get(v["criterion_id"])
-                    if r:
-                        v["reviewer_agreed"] = r.get("agree", True)
-                        if not r.get("agree", True) and r.get("override_status"):
-                            v["status"] = str(r["override_status"])
-                            v["reasoning"] += f" [REVIEWER: {str(r.get('comment', ''))}]"
-        except Exception as e:
-            logger.warning("Reviewer failed: %s", e)
+    # Note: Reviewer pass removed to cut latency. Confidence safety net below handles borderline cases.
 
     # ─── Confidence Safety Net ───
     # Low confidence = the LLM is guessing. Don't trust it.

@@ -92,8 +92,8 @@ export default function BidderManagement({ tenderId, criteria, bidders, setBidde
       }]);
     }
     
-    // Clear form inputs
-    setBidderName('');
+    // Clear file inputs but KEEP bidder name for adding more docs
+    // setBidderName('');  -- intentionally kept so user can add more files to same bidder
     setFiles([]);
     if (activeTab === 'upload') {
       const fileInput = document.getElementById('bidder-file');
