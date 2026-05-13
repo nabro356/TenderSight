@@ -254,19 +254,32 @@ export default function BidderManagement({ tenderId, criteria, bidders, setBidde
 
           {activeTab === 'upload' ? (
             <div className="mb-4">
-              <input 
-                type="file" 
-                id="bidder-file" 
-                className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" 
-                accept=".txt,.pdf,.png,.jpg,.jpeg,.zip"
-                multiple
-                onChange={(e) => setFiles(Array.from(e.target.files))}
-              />
-              {files.length > 0 && (
-                <p className="text-xs text-indigo-600 font-semibold mt-2">
-                  {files.length} file{files.length > 1 ? 's' : ''} selected: {files.map(f => f.name).join(', ')}
-                </p>
-              )}
+              <div className="border border-dashed border-slate-300 rounded-xl p-6 text-center hover:bg-slate-50/50 transition-colors bg-white/50">
+                <input 
+                  type="file" 
+                  id="bidder-file" 
+                  className="hidden" 
+                  accept=".txt,.pdf,.png,.jpg,.jpeg,.zip"
+                  multiple
+                  onChange={(e) => setFiles(Array.from(e.target.files))}
+                />
+                <label htmlFor="bidder-file" className="cursor-pointer flex flex-col items-center">
+                  <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-2">
+                    <Upload size={20} />
+                  </div>
+                  <span className="text-slate-700 font-bold text-sm">Click to upload bidder documents</span>
+                  <span className="text-slate-500 text-xs mt-1">PDF, TXT, Images, or ZIP bundle • Select multiple files</span>
+                </label>
+                {files.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2 justify-center">
+                    {files.map((f, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold border border-indigo-100">
+                        <FileText size={12} /> {f.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div className="mb-4">

@@ -420,6 +420,45 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
         </div>
       )}
 
+      {/* ═══ ANOMALY DETECTION BOX ═══ */}
+      {bidders.some(b => evaluations[b].anomaly_flag) && (
+        <div className="relative overflow-hidden border-2 border-amber-500/50 bg-gradient-to-br from-amber-50 via-white to-yellow-50 rounded-[2rem] p-8 shadow-xl shadow-amber-500/10">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-amber-600 rounded-2xl text-white shadow-lg shadow-amber-600/30">
+                <TrendingUp size={28} />
+              </div>
+              <div>
+                <h3 className="text-2xl font-extrabold text-amber-800 tracking-tight">Financial Anomaly Detected</h3>
+                <p className="text-sm text-amber-600 font-medium mt-1">Statistical analysis flagged abnormal bid amounts</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {bidders.filter(b => evaluations[b].anomaly_flag).map((name, idx) => (
+                <div key={idx} className="bg-white p-4 rounded-xl border border-amber-200 shadow-sm flex items-start gap-4">
+                  <div className="bg-amber-100 p-2 rounded-lg text-amber-600 mt-0.5">
+                    <ShieldAlert size={18} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900">{name}</p>
+                    <p className="text-amber-700 font-semibold text-sm mt-1">
+                      {evaluations[name].anomaly_reason}
+                    </p>
+                    {(evaluations[name].financial_bid_numeric || evaluations[name].financial_bid) && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        Bid Amount: <span className="font-mono font-bold">Rs. {Number(evaluations[name].financial_bid_numeric || evaluations[name].financial_bid).toLocaleString('en-IN')}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Detailed Results */}
       <div>
         <h3 className="text-lg font-semibold text-slate-700 mb-5 flex items-center gap-2"><FileText className="text-indigo-500" size={20}/> Detailed Bidder Evaluation</h3>
@@ -443,9 +482,9 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
                             <ShieldAlert size={12}/> ANOMALY
                           </span>
                         )}
-                        {ev.financial_bid != null && (
+                        {(ev.financial_bid_numeric || ev.financial_bid) != null && (
                           <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md flex items-center gap-1 border border-emerald-200 shadow-sm ml-2">
-                            Financial Bid: Rs. {Number(ev.financial_bid).toLocaleString('en-IN')}
+                            Financial Bid: Rs. {Number(ev.financial_bid_numeric || ev.financial_bid).toLocaleString('en-IN')}
                           </span>
                         )}
                       </div>
