@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Upload, FileText, CheckCircle2, Loader2, Sparkles, Package, Building2 } from 'lucide-react';
+import { Upload, FileText, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
 import { uploadTender } from '../api';
 
 const PROGRESS_STEPS = [
   "Initializing smart ingestion pipeline...",
-  "Detecting document types in bundle...",
-  "Running PyPDF parser with VLM fallback...",
-  "Extracting procurement metadata (GeM/GFR)...",
+  "Running PyPDF parser...",
+  "Applying Vision OCR fallback logic...",
+  "Extracting unstructured raw text...",
   "Analyzing context for eligibility criteria...",
-  "Resolving cross-document hierarchy...",
-  "Finalizing tender processing..."
+  "Finalizing tender document parsing..."
 ];
 
 export default function TenderUpload({ onTenderProcessed }) {
@@ -110,19 +109,19 @@ export default function TenderUpload({ onTenderProcessed }) {
                   type="file" 
                   id="tender-file" 
                   className="hidden" 
-                  accept=".txt,.pdf,.png,.jpg,.jpeg,.zip"
+                  accept=".txt,.pdf,.png,.jpg,.jpeg"
                   onChange={(e) => setFile(e.target.files[0])}
                 />
                 <label htmlFor="tender-file" className="cursor-pointer flex flex-col items-center">
                   <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-3">
                     <Upload size={24} />
                   </div>
-                  <span className="text-slate-700 font-bold">Click to upload a document or bundle</span>
-                  <span className="text-slate-500 text-sm mt-1">PDF, TXT, Images, or ZIP bundle (RFP + BOQ + ATC + Corrigendum)</span>
+                  <span className="text-slate-700 font-bold">Click to upload a document</span>
+                  <span className="text-slate-500 text-sm mt-1">PDF, TXT, or Image files (PNG, JPG)</span>
                 </label>
                 {file && (
                   <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-sm font-bold border border-indigo-100">
-                    {file.name.endsWith('.zip') ? <Package size={16} /> : <CheckCircle2 size={16} />} {file.name}
+                    <CheckCircle2 size={16} /> {file.name}
                   </div>
                 )}
               </div>
@@ -134,11 +133,11 @@ export default function TenderUpload({ onTenderProcessed }) {
               >
                 {loading ? (
                   <div className="flex flex-col items-center gap-1">
-                    <div className="flex items-center gap-2"><Loader2 className="animate-spin" size={18}/> Processing{file?.name?.endsWith('.zip') ? ' Bundle' : ' Document'}...</div>
+                    <div className="flex items-center gap-2"><Loader2 className="animate-spin" size={18}/> Processing Document...</div>
                     <div className="text-xs font-normal opacity-80 animate-pulse-fast">{PROGRESS_STEPS[progressIndex]}</div>
                   </div>
                 ) : (
-                  <>{file?.name?.endsWith('.zip') ? <Package size={18}/> : <Upload size={18}/>} Submit Tender {file?.name?.endsWith('.zip') ? 'Bundle' : 'Document'}</>
+                  <><Upload size={18}/> Submit Tender Document</>
                 )}
               </button>
             </div>

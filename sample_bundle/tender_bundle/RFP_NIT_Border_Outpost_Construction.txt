@@ -1,0 +1,169 @@
+================================================================================
+CENTRAL RESERVE POLICE FORCE (CRPF)
+DIRECTORATE GENERAL — ENGINEERING WING
+CGO Complex, Lodhi Road, New Delhi — 110003
+================================================================================
+
+NOTICE INVITING TENDER (NIT)
+Tender Reference No.: CRPF/EW/2025-26/BOP-RAJ/0042
+
+Subject: CONSTRUCTION OF 06 (SIX) BORDER OUTPOST BUILDINGS IN RAJASTHAN SECTOR
+         (BARMER AND JAISALMER DISTRICTS)
+
+GeM Bid Number: GEM/2025/B/5234871
+
+Published on: Central Public Procurement Portal (CPPP) & GeM
+Date of Publication: 15th April 2025
+Last Date for Submission of Bids: 20th May 2025 (1400 hrs IST)
+Date of Opening of Technical Bids: 21st May 2025 (1100 hrs IST)
+
+Estimated Cost: Rs. 18,50,00,000/- (Rupees Eighteen Crore Fifty Lakh Only)
+Earnest Money Deposit (EMD): Rs. 37,00,000/- (Rupees Thirty-Seven Lakh Only)
+Performance Security: 3% of contract value as ePBG
+
+================================================================================
+SECTION 1: INTRODUCTION AND SCOPE OF WORK
+================================================================================
+
+1.1  The Director General, CRPF, invites sealed tenders (Two-Bid System — 
+     Technical Bid and Financial Bid) from eligible contractors for the 
+     construction of 06 (six) Border Outpost (BOP) buildings in Rajasthan 
+     Sector, as per the specifications and terms laid down in this document.
+
+1.2  The work involves:
+     (a) Construction of 06 BOP buildings (each approx. 450 sqm built-up area)
+     (b) Internal electrification and plumbing
+     (c) Solar power installation (5 KW per BOP)
+     (d) Water harvesting structure at each location
+     (e) Perimeter fencing (chain-link, 8 ft height)
+     (f) Approach road construction (WBM + BT surface, 200m per BOP)
+
+1.3  Period of Completion: 12 months from the date of issue of Work Order.
+
+1.4  Defect Liability Period: 24 months from the date of completion.
+
+================================================================================
+SECTION 2: ELIGIBILITY CRITERIA
+================================================================================
+
+Bidders must satisfy ALL of the following eligibility criteria. Failure to 
+meet any mandatory criterion will result in rejection of the bid.
+
+2.1  FINANCIAL CRITERIA
+────────────────────────
+2.1.1  Annual Turnover: The bidder must have an average annual turnover of 
+       not less than Rs. 5 Crore (Rupees Five Crore) during the last three 
+       financial years (FY 2022-23, FY 2023-24, FY 2024-25), as certified 
+       by a Chartered Accountant.
+
+2.1.2  Net Worth: The bidder must have a positive net worth as on 31st March 
+       2025, certified by a Chartered Accountant.
+
+2.1.3  Solvency Certificate: The bidder must submit a Solvency Certificate 
+       from a Scheduled Bank for an amount not less than Rs. 3 Crore.
+
+2.2  EXPERIENCE CRITERIA
+─────────────────────────
+2.2.1  Similar Work Experience: The bidder must have successfully completed 
+       at least TWO (2) similar works (construction of government/defense 
+       buildings) of value not less than Rs. 7 Crore each, OR ONE (1) similar 
+       work of value not less than Rs. 12 Crore, during the last SEVEN (7) 
+       years ending 31st March 2025.
+
+2.2.2  Government Contract Experience: The bidder must have experience of 
+       executing at least one contract with a Central/State Government 
+       department or Public Sector Undertaking (PSU).
+
+2.3  TECHNICAL CRITERIA
+────────────────────────
+2.3.1  Registration: The bidder must be registered as a contractor with 
+       CPWD / MES / State PWD / Railways in Class-I or equivalent category.
+
+2.3.2  ISO Certification: The bidder should possess a valid ISO 9001:2015 
+       Quality Management System certification.
+
+2.3.3  Labour License: The bidder must hold a valid Contract Labour License 
+       under the Contract Labour (Regulation and Abolition) Act, 1970.
+
+2.4  COMPLIANCE CRITERIA
+─────────────────────────
+2.4.1  GST Registration: The bidder must have a valid GST Registration 
+       (GSTIN) and must be compliant with GST return filing.
+
+2.4.2  PAN Card: The bidder must submit a copy of the PAN Card.
+
+2.4.3  No Blacklisting: The bidder must submit a self-declaration that the 
+       firm has not been blacklisted or debarred by any Central/State 
+       Government department or PSU as on the date of bid submission.
+
+2.4.4  EMD Submission: The bidder must submit EMD of Rs. 37,00,000/- in the 
+       form of BG/FDR/DD in favour of "Pay & Accounts Officer, CRPF".
+       Note: MSEs registered under MSMED Act and Startups recognized by 
+       DPIIT are EXEMPT from EMD as per GFR 2017 Rule 170(i).
+
+================================================================================
+SECTION 3: EVALUATION METHODOLOGY
+================================================================================
+
+3.1  Evaluation shall be done in Two-Bid System:
+     (a) Technical Bid: Evaluated first. Only technically qualified bidders 
+         will have their Financial Bids opened.
+     (b) Financial Bid: L1 (Lowest Bidder) methodology.
+
+3.2  Technical Evaluation will be on Pass/Fail basis against the eligibility 
+     criteria listed in Section 2.
+
+3.3  The Evaluation Committee reserves the right to seek clarification from 
+     any bidder regarding their submission.
+
+3.4  Bidders scoring below the technical threshold will NOT have their 
+     financial bids opened.
+
+================================================================================
+SECTION 4: BID SUBMISSION REQUIREMENTS
+================================================================================
+
+4.1  Technical Bid Envelope shall contain:
+     (a) Covering letter on company letterhead
+     (b) EMD proof (BG/FDR/DD) or MSE/Startup exemption certificate
+     (c) Audited balance sheets for last 3 financial years
+     (d) CA certificate for average annual turnover
+     (e) Work completion certificates for similar works
+     (f) CPWD/MES/PWD registration certificate
+     (g) ISO 9001:2015 certificate
+     (h) Contract Labour License
+     (i) GST Registration Certificate
+     (j) PAN Card copy
+     (k) Self-declaration regarding non-blacklisting
+     (l) Company incorporation certificate
+     (m) Board resolution / Power of Attorney
+
+4.2  Financial Bid: To be submitted ONLY in the prescribed BOQ format 
+     (attached separately as BOQ_Price_Schedule.csv).
+
+================================================================================
+SECTION 5: GENERAL TERMS AND CONDITIONS
+================================================================================
+
+5.1  The Competent Authority reserves the right to reject any or all bids 
+     without assigning any reason thereof.
+
+5.2  Conditional bids shall be summarily rejected.
+
+5.3  Joint ventures / consortia are NOT permitted for this tender.
+
+5.4  Sub-contracting of more than 25% of the work value is not permitted 
+     without prior written approval of the Competent Authority.
+
+5.5  All disputes shall be subject to the jurisdiction of courts in New Delhi.
+
+================================================================================
+AUTHORIZED SIGNATORY
+
+Brig. R.K. Sharma (Retd.)
+Chief Engineer, CRPF Engineering Wing
+Date: 15th April 2025
+
+DISCLAIMER: This is a synthetic document created for software testing purposes.
+No government endorsement claimed or implied.
+================================================================================

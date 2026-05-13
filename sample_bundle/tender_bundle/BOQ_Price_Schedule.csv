@@ -1,0 +1,26 @@
+Sl. No.,Item Description,Unit,Quantity,Estimated Rate (Rs.),Estimated Amount (Rs.)
+1,Site Clearance and Earthwork (per BOP site),Lump Sum,6,250000,1500000
+2,"RCC Foundation Work (M25 grade, as per IS 456:2000)",Cum,1800,8500,15300000
+3,"Superstructure — Brick Masonry (First class bricks, 1:4 cement mortar)",Cum,2400,7200,17280000
+4,"RCC Roof Slab (M30 grade, 150mm thick)",Sqm,2700,3800,10260000
+5,"Plastering — Internal (12mm cement plaster 1:4) and External (18mm 1:4)",Sqm,14400,320,4608000
+6,"Flooring — Vitrified Tiles (600x600mm, Grade-1)",Sqm,2700,1200,3240000
+7,"Door and Window Frames (Teak wood, seasoned)",Rmt,960,2800,2688000
+8,"Doors — Flush doors with hardware",Each,72,8500,612000
+9,"Windows — UPVC sliding with mosquito mesh",Each,120,12000,1440000
+10,"Internal Electrification (wiring, switches, LED fixtures)",Per BOP,6,350000,2100000
+11,"Solar Power System (5 KW off-grid with battery bank)",Per BOP,6,480000,2880000
+12,"Plumbing and Sanitary Installation",Per BOP,6,280000,1680000
+13,"Water Harvesting Structure (RCC tank 10000 litre)",Each,6,185000,1110000
+14,"Overhead Water Tank (Sintex 5000 litre with stand)",Each,12,45000,540000
+15,"Septic Tank and Soak Pit",Each,6,120000,720000
+16,"External Electrification (transformer, cabling, earthing)",Per BOP,6,520000,3120000
+17,"Perimeter Fencing — Chain Link (8 ft GI, with angle iron posts)",Rmt,3600,1800,6480000
+18,"Approach Road — WBM Base + BT Surface (3.75m width, 200m per BOP)",Sqm,4500,950,4275000
+19,"Boundary Wall — RCC compound wall with barbed wire on top",Rmt,1200,3500,4200000
+20,"Guard Room / Sentry Post (prefabricated, bulletproof)",Each,6,650000,3900000
+21,"Painting — Interior (Acrylic emulsion) and Exterior (Apex weatherproof)",Sqm,14400,180,2592000
+22,"Miscellaneous — Signage, name plates, flag mast",Lump Sum,6,75000,450000
+23,"Contingencies and Unforeseen Works (3%)",Lump Sum,1,4425750,4425750
+24,"Contractor's Profit and Overheads",Percentage,1,0,0
+,,,,TOTAL ESTIMATED COST:,"Rs. 18,50,00,000"

@@ -1,0 +1,75 @@
+================================================================================
+CORRIGENDUM NO. 1
+Tender Reference: CRPF/EW/2025-26/BOP-RAJ/0042
+GeM Bid Number: GEM/2025/B/5234871
+================================================================================
+
+Date: 02nd May 2025
+
+The following amendments are hereby made to the original NIT/RFP document
+dated 15th April 2025 and all associated documents:
+
+================================================================================
+AMENDMENT 1: EXTENSION OF BID SUBMISSION DEADLINE
+================================================================================
+The last date for submission of bids is hereby EXTENDED as follows:
+
+  Original Date: 20th May 2025, 1400 hrs IST
+  Revised Date:  30th May 2025, 1400 hrs IST
+
+  Original Date of Opening: 21st May 2025
+  Revised Date of Opening:  31st May 2025, 1100 hrs IST
+
+================================================================================
+AMENDMENT 2: EXPERIENCE CRITERIA CLARIFICATION
+================================================================================
+Clause 2.2.1 of the RFP is clarified as follows:
+
+"Similar Work" shall mean construction of residential/office/institutional
+buildings for Central Government, State Government, Defence establishments,
+or Central/State PSUs. Construction of commercial buildings, private 
+residences, or industrial sheds shall NOT be considered as "similar work."
+
+Work completion certificates must clearly mention:
+  (a) Nature of work executed
+  (b) Gross value of the contract
+  (c) Date of completion
+  (d) Name and designation of the issuing officer
+
+================================================================================
+AMENDMENT 3: EMD FORMAT
+================================================================================
+In addition to BG/FDR/DD, the EMD may also be submitted as:
+  - Online transfer (NEFT/RTGS) to CRPF account
+  - Bid Security Declaration (as per DoE OM dated 12.11.2020)
+
+MSE and DPIIT-recognized Startup exemptions continue to apply as per
+GFR 2017 Rule 170(i) and Rule 173(i) respectively.
+
+================================================================================
+AMENDMENT 4: SOLAR POWER SPECIFICATION UPGRADE
+================================================================================
+The solar power system requirement in Clause 1.2(c) of the RFP is revised:
+
+  Original: 5 KW per BOP
+  Revised:  7.5 KW per BOP (to accommodate increased power requirements
+            for surveillance equipment)
+
+The BOQ shall be deemed amended accordingly. Bidders should price for 
+7.5 KW solar systems in their financial bids.
+
+================================================================================
+
+All other terms and conditions of the original NIT/RFP and ATC remain 
+unchanged unless specifically amended herein.
+
+This Corrigendum is to be read in conjunction with the original tender 
+documents. In case of conflict between this Corrigendum and the original 
+documents, this Corrigendum shall prevail.
+
+AUTHORIZED SIGNATORY
+Brig. R.K. Sharma (Retd.)
+Chief Engineer, CRPF Engineering Wing
+
+DISCLAIMER: Synthetic document for software testing. No government endorsement.
+================================================================================

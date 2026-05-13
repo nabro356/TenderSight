@@ -1,0 +1,96 @@
+================================================================================
+ADDITIONAL TERMS AND CONDITIONS (ATC)
+Tender Ref: CRPF/EW/2025-26/BOP-RAJ/0042
+================================================================================
+
+NOTE: These Additional Terms and Conditions are SUPPLEMENTARY to the 
+General Terms and Conditions (GTC) of GeM and the terms in the RFP.
+WHERE THESE ATCs CONFLICT WITH THE STANDARD GTC, THESE ATCs SHALL PREVAIL.
+
+================================================================================
+ATC-1: GEOGRAPHICAL EXPERIENCE REQUIREMENT (ADDITIONAL)
+================================================================================
+In addition to the experience criteria stated in the RFP (Section 2.2),
+the bidder MUST demonstrate experience of executing at least ONE civil 
+construction project in a desert/arid region (Rajasthan, Gujarat-Kutch,
+or equivalent terrain) within the last 5 years.
+
+This is an ADDITIONAL mandatory requirement not covered in the standard GTC.
+
+================================================================================
+ATC-2: SITE VISIT MANDATORY
+================================================================================
+Bidders are required to have visited at least ONE of the proposed BOP sites
+before bid submission. A Site Visit Certificate signed by the CRPF Station
+Commander at the respective location must be submitted with the Technical Bid.
+
+Site visit window: 20th April 2025 to 5th May 2025.
+Contact for site visit arrangement: SE (Border Works), CRPF Jodhpur Sector.
+Phone: 0291-XXXXXXX
+
+================================================================================
+ATC-3: SECURITY CLEARANCE
+================================================================================
+The successful bidder's key personnel (Project Manager, Site Engineer) will
+be subject to security verification by CRPF Intelligence Wing before being
+permitted access to the border area construction sites.
+
+Personnel who fail security clearance must be replaced within 15 days,
+failing which a penalty of Rs. 50,000 per day of delay shall be levied.
+
+================================================================================
+ATC-4: MATERIAL PROCUREMENT
+================================================================================
+(a) All cement used shall be OPC 53 Grade conforming to IS 12269:2013.
+    Only cement from approved manufacturers (ACC, Ambuja, UltraTech, 
+    Shree Cement, JK Cement) shall be used.
+
+(b) Steel reinforcement shall conform to IS 1786:2008, Fe-500D grade.
+    Mill test certificates must be submitted for every lot.
+
+(c) Water for construction must be sourced locally. If potable water is
+    not available, the contractor must arrange water tankers at own cost.
+    Water testing report from a NABL-accredited lab required before use.
+
+================================================================================
+ATC-5: MILESTONE PAYMENT SCHEDULE
+================================================================================
+Payment shall be released in the following milestones:
+
+  Milestone 1: Foundation complete (30% of contract value)
+  Milestone 2: Superstructure complete (25% of contract value)
+  Milestone 3: Finishing and MEP works (25% of contract value)
+  Milestone 4: Final completion + defect rectification (15% of contract value)
+  Retention: 5% retained for 24 months as defect liability period
+
+Note: GST shall be paid extra at applicable rates on each milestone payment.
+
+================================================================================
+ATC-6: LIQUIDATED DAMAGES
+================================================================================
+In case of delay beyond the stipulated completion period of 12 months:
+
+  - Penalty: 0.5% of contract value per week of delay
+  - Maximum penalty: 10% of total contract value
+  - Beyond 10% penalty: CRPF reserves the right to terminate the contract
+    and forfeit the Performance Security
+
+================================================================================
+ATC-7: REVISED TURNOVER REQUIREMENT
+================================================================================
+IMPORTANT AMENDMENT: The minimum average annual turnover requirement specified
+in the RFP (Section 2.1.1) is hereby REVISED from Rs. 5 Crore to Rs. 4 Crore 
+(Rupees Four Crore Only) to enable wider participation from competent firms.
+
+This revision supersedes the original RFP clause. All other financial criteria
+remain unchanged.
+
+================================================================================
+
+AUTHORIZED SIGNATORY
+Brig. R.K. Sharma (Retd.)
+Chief Engineer, CRPF Engineering Wing
+Date: 18th April 2025
+
+DISCLAIMER: Synthetic document for software testing. No government endorsement.
+================================================================================
