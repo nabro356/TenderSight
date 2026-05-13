@@ -160,26 +160,42 @@ class OrchestratorAgent(BaseAgent):
         if gfr_exemptions and progress_callback:
             progress_callback(f"{len(gfr_exemptions)} criteria resolved by GFR rules (zero LLM cost)")
 
-        # 4. LLM evaluation
+        # 4. LLM evaluation — ONLY for non-exempt criteria (saves 30-40% LLM calls)
+        llm_criteria = [c for c in criteria if str(c.get("id", "")) not in gfr_exemptions]
         if progress_callback:
-            progress_callback(f"Evaluating {bidder_name}...")
-        evaluation = evaluate_bidder(criteria, master_bidder_text, bidder_name,
-                                     api_key=api_key, progress_callback=progress_callback)
+            progress_callback(f"Evaluating {bidder_name} on {len(llm_criteria)}/{len(criteria)} criteria via LLM...")
 
-        # 5. Overlay GFR exemptions onto LLM verdicts
-        for v in evaluation.get("verdicts", []):
-            cid = v.get("criterion_id", "")
-            if cid in gfr_exemptions:
-                ex = gfr_exemptions[cid]
-                v["status"] = ex["status"]
-                v["confidence"] = ex["confidence"]
-                v["reasoning"] = ex["reasoning"]
-                v["pass_used"] = "gfr_rules_engine"
-                v["gfr_exemption"] = {"type": ex["exemption_type"], "rule": ex.get("gfr_rule", ""),
-                                       "certificate": ex.get("certificate_ref", "")}
+        if llm_criteria:
+            evaluation = evaluate_bidder(llm_criteria, master_bidder_text, bidder_name,
+                                         api_key=api_key, progress_callback=progress_callback)
+        else:
+            # All criteria resolved by GFR — no LLM needed at all
+            evaluation = {"bidder_name": bidder_name, "verdicts": [], "overall_status": "ELIGIBLE",
+                          "eligible_count": 0, "not_eligible_count": 0, "manual_review_count": 0}
+
+        # 5. Build GFR verdicts and merge them into the evaluation
+        gfr_verdicts = []
+        for cid, ex in gfr_exemptions.items():
+            matching_criterion = next((c for c in criteria if str(c.get("id", "")) == cid), None)
+            gfr_verdicts.append({
+                "criterion_id": cid,
+                "criterion_text": matching_criterion.get("text", "") if matching_criterion else "",
+                "criterion_type": matching_criterion.get("type", "Requirement") if matching_criterion else "Requirement",
+                "status": ex["status"],
+                "confidence": ex["confidence"],
+                "reasoning": ex["reasoning"],
+                "pass_used": "gfr_rules_engine",
+                "gfr_exemption": {"type": ex["exemption_type"], "rule": ex.get("gfr_rule", ""),
+                                   "certificate": ex.get("certificate_ref", "")},
+                "evidence_used": [{"value": ex.get("certificate_ref", ""), "exact_quote": ex.get("certificate_ref", "")}],
+            })
+
+        # Merge: GFR verdicts + LLM verdicts
+        all_verdicts = gfr_verdicts + evaluation.get("verdicts", [])
+        evaluation["verdicts"] = all_verdicts
 
         # Recompute aggregates
-        statuses = [v["status"] for v in evaluation.get("verdicts", [])]
+        statuses = [v["status"] for v in all_verdicts]
         evaluation["eligible_count"] = statuses.count("ELIGIBLE")
         evaluation["not_eligible_count"] = statuses.count("NOT_ELIGIBLE")
         evaluation["manual_review_count"] = statuses.count("MANUAL_REVIEW")

@@ -65,8 +65,8 @@ export const evaluateAllBidders = async (tenderId, bidders) => {
 
   const response = await api.post(`/evaluate_all/${tenderId}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
-    // Allow longer timeout for bulk evaluation (5 minutes)
-    timeout: 300000,
+    // Allow longer timeout for bulk evaluation (10 minutes for Render free tier)
+    timeout: 600000,
   });
   return response.data;
 };
