@@ -63,13 +63,20 @@ orchestrator = OrchestratorAgent()
 
 @app.get("/")
 async def health_check():
-    tenders = await db_client.get_all_tenders()
+    tender_count = 0
+    db_ok = db_client.connected
+    try:
+        if db_ok:
+            tenders = await db_client.get_all_tenders()
+            tender_count = len(tenders)
+    except Exception:
+        db_ok = False
     return {
         "status": "ok",
         "service": "TenderSight AI",
-        "version": "2.0.0",
-        "db_connected": db_client.connected,
-        "active_tenders": len(tenders),
+        "version": "3.0.0",
+        "db_connected": db_ok,
+        "active_tenders": tender_count,
     }
 
 
