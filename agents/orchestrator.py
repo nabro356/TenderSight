@@ -106,8 +106,7 @@ class OrchestratorAgent(BaseAgent):
 
     def evaluate_single_bidder(self, criteria, bidder_name, bidder_bytes_list, bidder_filenames,
                                 api_key=None, progress_callback=None, tender_id=""):
-        """Evaluate a single bidder: Security -> Ingest -> GFR Rules -> LLM Evaluate."""
-        dag = get_or_create_dag(tender_id) if tender_id else None
+        """Evaluate a single bidder: Ingest → Security → LLM Evaluate."""
 
         # 1. Ingest bidder documents
         if progress_callback:
@@ -130,86 +129,22 @@ class OrchestratorAgent(BaseAgent):
         if progress_callback:
             progress_callback(f"Security scanning {bidder_name}...")
         security = check_security(master_bidder_text, filename="Multiple Documents")
-        if dag:
-            dag.record_security_scan(bidder_name, security.get("safe", True), security.get("threats_detected", []))
         if not security.get("safe", True):
             return {"bidder_name": bidder_name, "overall_status": "NOT_ELIGIBLE", "verdicts": [],
                     "eligible_count": 0, "not_eligible_count": len(criteria), "manual_review_count": 0,
                     "error": f"Security threat: {security.get('threats_detected', [])}",
                     "security_report": security, "ocr_engine": used_engine}
 
-        # 3. GFR 2017 Procurement Rules (zero LLM cost)
+        # 3. LLM evaluation (all criteria)
         if progress_callback:
-            progress_callback(f"Checking GFR 2017 exemptions for {bidder_name}...")
-        rules_engine = ProcurementRulesEngine()
-        msme_status = rules_engine.detect_msme_status(master_bidder_text)
-        startup_status = rules_engine.detect_startup_status(master_bidder_text)
-        mii_status = rules_engine.detect_make_in_india(master_bidder_text)
-        certifications = extract_certifications(master_bidder_text)
-
-        gfr_exemptions = {}
-        for c in criteria:
-            exemption = rules_engine.check_exemptions_for_criterion(c, msme_status, startup_status)
-            if exemption:
-                cid = str(c.get("id", ""))
-                gfr_exemptions[cid] = exemption
-                if dag:
-                    dag.record_gfr_exemption(bidder_name, cid, exemption["exemption_type"],
-                                              exemption.get("certificate_ref", ""), exemption.get("gfr_rule", ""))
-
-        if gfr_exemptions and progress_callback:
-            progress_callback(f"{len(gfr_exemptions)} criteria resolved by GFR rules (zero LLM cost)")
-
-        # 4. LLM evaluation — ONLY for non-exempt criteria (saves 30-40% LLM calls)
-        llm_criteria = [c for c in criteria if str(c.get("id", "")) not in gfr_exemptions]
-        if progress_callback:
-            progress_callback(f"Evaluating {bidder_name} on {len(llm_criteria)}/{len(criteria)} criteria via LLM...")
-
-        if llm_criteria:
-            evaluation = evaluate_bidder(llm_criteria, master_bidder_text, bidder_name,
-                                         api_key=api_key, progress_callback=progress_callback)
-        else:
-            # All criteria resolved by GFR — no LLM needed at all
-            evaluation = {"bidder_name": bidder_name, "verdicts": [], "overall_status": "ELIGIBLE",
-                          "eligible_count": 0, "not_eligible_count": 0, "manual_review_count": 0}
-
-        # 5. Build GFR verdicts and merge them into the evaluation
-        gfr_verdicts = []
-        for cid, ex in gfr_exemptions.items():
-            matching_criterion = next((c for c in criteria if str(c.get("id", "")) == cid), None)
-            gfr_verdicts.append({
-                "criterion_id": cid,
-                "criterion_text": matching_criterion.get("text", "") if matching_criterion else "",
-                "criterion_type": matching_criterion.get("type", "Requirement") if matching_criterion else "Requirement",
-                "status": ex["status"],
-                "confidence": ex["confidence"],
-                "reasoning": ex["reasoning"],
-                "pass_used": "gfr_rules_engine",
-                "gfr_exemption": {"type": ex["exemption_type"], "rule": ex.get("gfr_rule", ""),
-                                   "certificate": ex.get("certificate_ref", "")},
-                "evidence_used": [{"value": ex.get("certificate_ref", ""), "exact_quote": ex.get("certificate_ref", "")}],
-            })
-
-        # Merge: GFR verdicts + LLM verdicts
-        all_verdicts = gfr_verdicts + evaluation.get("verdicts", [])
-        evaluation["verdicts"] = all_verdicts
-
-        # Recompute aggregates
-        statuses = [v["status"] for v in all_verdicts]
-        evaluation["eligible_count"] = statuses.count("ELIGIBLE")
-        evaluation["not_eligible_count"] = statuses.count("NOT_ELIGIBLE")
-        evaluation["manual_review_count"] = statuses.count("MANUAL_REVIEW")
-        evaluation["overall_status"] = (
-            "NOT_ELIGIBLE" if "NOT_ELIGIBLE" in statuses else
-            "MANUAL_REVIEW" if "MANUAL_REVIEW" in statuses else "ELIGIBLE")
+            progress_callback(f"Evaluating {bidder_name}...")
+        evaluation = evaluate_bidder(criteria, master_bidder_text, bidder_name,
+                                     api_key=api_key, progress_callback=progress_callback)
 
         evaluation["security_report"] = security
         evaluation["ocr_engine"] = used_engine
         evaluation["ingestion_confidence"] = overall_confidence
         evaluation["bidder_text_snapshot"] = master_bidder_text
-        evaluation["gfr_status"] = {"msme": msme_status, "startup": startup_status,
-                                     "make_in_india": mii_status, "certifications": certifications,
-                                     "exemptions_applied": len(gfr_exemptions)}
         return evaluation
 
     def run_full_pipeline(

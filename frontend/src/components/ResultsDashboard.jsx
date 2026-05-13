@@ -236,18 +236,18 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
     }
     
     // 3. Last resort: highlight individual key terms inline
-    let highlighted = fullText;
-    const keyTerms = quoteWords.filter(w => w.length > 4).slice(0, 5);
+    const keyTerms = quoteWords.filter(w => w.length > 4).slice(0, 8);
     if (keyTerms.length > 0) {
       const regex = new RegExp(`(${keyTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
-      const parts = highlighted.split(regex);
+      const parts = fullText.split(regex);
       return (
         <p className="whitespace-pre-wrap font-mono text-sm text-slate-700 leading-relaxed">
-          {parts.map((part, i) =>
-            regex.test(part) 
-              ? <mark key={i} className="bg-amber-200/70 text-amber-900 rounded px-0.5 font-semibold" id={i === 1 ? "highlighted-evidence" : undefined}>{part}</mark>
-              : part
-          )}
+          {parts.map((part, i) => {
+            const isMatch = keyTerms.some(t => part.toLowerCase() === t.toLowerCase());
+            return isMatch 
+              ? <mark key={i} className="bg-amber-200/70 text-amber-900 rounded px-0.5 font-semibold" id={i <= 2 ? "highlighted-evidence" : undefined}>{part}</mark>
+              : <span key={i}>{part}</span>;
+          })}
         </p>
       );
     }
@@ -534,10 +534,22 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
                       <h3 className="font-bold text-slate-800">Source Document Viewer</h3>
                     </div>
                     <div className="bg-slate-50 p-6 rounded-lg border border-slate-200 max-h-[60vh] overflow-y-auto">
-                      {renderHighlightedText(
-                        evaluations[expandedBidder].bidder_text_snapshot, 
-                        evaluations[expandedBidder].verdicts.find(v => v.criterion_id === viewingSourceFor)?.evidence_used[0]?.exact_quote
-                      )}
+                      {(() => {
+                        const v = evaluations[expandedBidder].verdicts.find(v => v.criterion_id === viewingSourceFor);
+                        const quote = v?.evidence_used?.[0]?.exact_quote;
+                        const value = v?.evidence_used?.[0]?.value;
+                        const reasoning = v?.reasoning;
+                        // Use the best available search term
+                        const searchTerm = (quote && quote !== 'null' && quote !== 'Not found' && quote.length > 5) 
+                          ? quote 
+                          : (value && value !== 'null' && value !== 'Not found' && value.length > 3) 
+                            ? value 
+                            : reasoning;
+                        return renderHighlightedText(
+                          evaluations[expandedBidder].bidder_text_snapshot,
+                          searchTerm
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
