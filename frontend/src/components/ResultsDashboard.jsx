@@ -388,6 +388,11 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
                             <ShieldAlert size={12}/> ANOMALY
                           </span>
                         )}
+                        {ev.financial_bid != null && (
+                          <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md flex items-center gap-1 border border-emerald-200 shadow-sm ml-2">
+                            Financial Bid: Rs. {Number(ev.financial_bid).toLocaleString('en-IN')}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="text-sm text-slate-500">
