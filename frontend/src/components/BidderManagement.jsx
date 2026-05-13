@@ -6,7 +6,7 @@ import { evaluateAllBidders, connectEvalStream } from '../api';
 export default function BidderManagement({ tenderId, criteria, bidders, setBidders, onEvaluationComplete }) {
   const [activeTab, setActiveTab] = useState('upload');
   const [bidderName, setBidderName] = useState('');
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [evaluating, setEvaluating] = useState(false);
@@ -61,8 +61,8 @@ export default function BidderManagement({ tenderId, criteria, bidders, setBidde
       return;
     }
     
-    if (activeTab === 'upload' && !file) {
-      setError('Please upload a file');
+    if (activeTab === 'upload' && files.length === 0) {
+      setError('Please upload at least one file');
       return;
     }
     if (activeTab === 'paste' && !text.trim()) {
@@ -70,28 +70,31 @@ export default function BidderManagement({ tenderId, criteria, bidders, setBidde
       return;
     }
     
-    const newContent = {
-      type: activeTab,
-      data: activeTab === 'upload' ? file : text,
-      label: activeTab === 'upload' ? file.name : 'Pasted Text Document'
-    };
+    const newContents = [];
+    if (activeTab === 'upload') {
+      for (const f of files) {
+        newContents.push({ type: 'upload', data: f, label: f.name });
+      }
+    } else {
+      newContents.push({ type: 'paste', data: text, label: 'Pasted Text Document' });
+    }
     
     const existingIndex = bidders.findIndex(b => b.name === bidderName.trim());
     
     if (existingIndex >= 0) {
       const updatedBidders = [...bidders];
-      updatedBidders[existingIndex].contents.push(newContent);
+      updatedBidders[existingIndex].contents.push(...newContents);
       setBidders(updatedBidders);
     } else {
       setBidders(prev => [...prev, {
         name: bidderName.trim(),
-        contents: [newContent]
+        contents: newContents
       }]);
     }
     
     // Clear form inputs
     setBidderName('');
-    setFile(null);
+    setFiles([]);
     if (activeTab === 'upload') {
       const fileInput = document.getElementById('bidder-file');
       if (fileInput) fileInput.value = '';
@@ -255,9 +258,15 @@ export default function BidderManagement({ tenderId, criteria, bidders, setBidde
                 type="file" 
                 id="bidder-file" 
                 className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" 
-                accept=".txt,.pdf"
-                onChange={(e) => setFile(e.target.files[0])}
+                accept=".txt,.pdf,.png,.jpg,.jpeg,.zip"
+                multiple
+                onChange={(e) => setFiles(Array.from(e.target.files))}
               />
+              {files.length > 0 && (
+                <p className="text-xs text-indigo-600 font-semibold mt-2">
+                  {files.length} file{files.length > 1 ? 's' : ''} selected: {files.map(f => f.name).join(', ')}
+                </p>
+              )}
             </div>
           ) : (
             <div className="mb-4">
