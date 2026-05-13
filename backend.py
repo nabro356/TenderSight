@@ -316,10 +316,33 @@ async def evaluate_all_bidders(
     for name, result in results.items():
         await db_client.save_evaluation(tender_id, name, result)
 
+    # --- Run anomaly + cartel detection on the full set ---
+    db_evals = await db_client.get_evaluations(tender_id)
+    try:
+        updated_evals = await run_in_threadpool(
+            detect_financial_anomalies,
+            db_evals,
+            api_key=api_key,
+        )
+        for bidder, data in updated_evals.items():
+            await db_client.save_evaluation(tender_id, bidder, data)
+    except Exception as e:
+        logger.warning("Anomaly detection failed: %s", e)
+        updated_evals = db_evals
+
+    try:
+        cartel_alerts = await run_in_threadpool(
+            detect_cartels_via_graph,
+            tender_id, updated_evals, api_key,
+        )
+    except Exception as e:
+        logger.warning("Cartel detection failed: %s", e)
+        cartel_alerts = []
+
     return {
         "status": "success",
-        "evaluations": results,
-        "cartel_alerts": [],
+        "evaluations": updated_evals,
+        "cartel_alerts": cartel_alerts,
         "errors": errors if errors else None,
     }
 
