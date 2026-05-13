@@ -232,6 +232,16 @@ Evaluate each criterion. Return a JSON array."""),
         except Exception as e:
             logger.warning("Reviewer failed: %s", e)
 
+    # ─── Confidence Safety Net ───
+    # If the LLM is uncertain (confidence < 0.70), force MANUAL_REVIEW
+    # This catches hallucinations like "5 Crore < 3 Crore → NOT_ELIGIBLE"
+    for v in verdicts:
+        conf = v.get("confidence", 0.5)
+        if conf < 0.70 and v["status"] in ("NOT_ELIGIBLE", "ELIGIBLE"):
+            original_status = v["status"]
+            v["status"] = "MANUAL_REVIEW"
+            v["review_reason"] = f"Low confidence ({conf:.0%}) — AI said {original_status} but is not sure enough. Needs human verification."
+
     # Aggregate
     statuses = [v["status"] for v in verdicts]
 

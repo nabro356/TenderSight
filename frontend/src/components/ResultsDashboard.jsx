@@ -183,21 +183,76 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
   const renderHighlightedText = (fullText, highlightQuote) => {
     if (!highlightQuote || !fullText) return <p className="whitespace-pre-wrap font-mono text-sm text-slate-700">{fullText}</p>;
     
-    // Simple string search and replace
-    const index = fullText.toLowerCase().indexOf(highlightQuote.toLowerCase());
-    if (index === -1) return <p className="whitespace-pre-wrap font-mono text-sm text-slate-700">{fullText}</p>;
+    // 1. Try exact match first (case-insensitive)
+    const exactIdx = fullText.toLowerCase().indexOf(highlightQuote.toLowerCase());
+    if (exactIdx !== -1) {
+      const before = fullText.substring(0, exactIdx);
+      const match = fullText.substring(exactIdx, exactIdx + highlightQuote.length);
+      const after = fullText.substring(exactIdx + highlightQuote.length);
+      return (
+        <p className="whitespace-pre-wrap font-mono text-sm text-slate-700 leading-relaxed">
+          {before}
+          <mark className="bg-yellow-300 text-yellow-900 rounded px-1 font-bold shadow-sm" id="highlighted-evidence">{match}</mark>
+          {after}
+        </p>
+      );
+    }
+
+    // 2. Fuzzy match: find the best-overlapping window using key words
+    const quoteWords = highlightQuote.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 3);
+    if (quoteWords.length === 0) return <p className="whitespace-pre-wrap font-mono text-sm text-slate-700">{fullText}</p>;
     
-    const before = fullText.substring(0, index);
-    const match = fullText.substring(index, index + highlightQuote.length);
-    const after = fullText.substring(index + highlightQuote.length);
+    const textLower = fullText.toLowerCase();
+    let bestStart = -1, bestEnd = -1, bestScore = 0;
     
-    return (
-      <p className="whitespace-pre-wrap font-mono text-sm text-slate-700 leading-relaxed">
-        {before}
-        <mark className="bg-yellow-300 text-yellow-900 rounded px-1 font-bold shadow-sm" id="highlighted-evidence">{match}</mark>
-        {after}
-      </p>
-    );
+    // Sliding window: check every ~200 char window
+    const windowSize = Math.max(highlightQuote.length, 150);
+    for (let i = 0; i <= textLower.length - 50; i += 20) {
+      const windowEnd = Math.min(i + windowSize, textLower.length);
+      const window = textLower.substring(i, windowEnd);
+      const score = quoteWords.filter(w => window.includes(w)).length;
+      if (score > bestScore && score >= Math.ceil(quoteWords.length * 0.4)) {
+        bestScore = score;
+        bestStart = i;
+        bestEnd = windowEnd;
+      }
+    }
+    
+    if (bestStart !== -1) {
+      // Expand to line boundaries for cleaner highlighting
+      while (bestStart > 0 && fullText[bestStart - 1] !== '\n') bestStart--;
+      while (bestEnd < fullText.length && fullText[bestEnd] !== '\n') bestEnd++;
+      
+      const before = fullText.substring(0, bestStart);
+      const match = fullText.substring(bestStart, bestEnd);
+      const after = fullText.substring(bestEnd);
+      return (
+        <p className="whitespace-pre-wrap font-mono text-sm text-slate-700 leading-relaxed">
+          {before}
+          <mark className="bg-yellow-200/80 text-yellow-900 rounded px-0.5 border-l-4 border-yellow-500" id="highlighted-evidence">{match}</mark>
+          {after}
+        </p>
+      );
+    }
+    
+    // 3. Last resort: highlight individual key terms inline
+    let highlighted = fullText;
+    const keyTerms = quoteWords.filter(w => w.length > 4).slice(0, 5);
+    if (keyTerms.length > 0) {
+      const regex = new RegExp(`(${keyTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+      const parts = highlighted.split(regex);
+      return (
+        <p className="whitespace-pre-wrap font-mono text-sm text-slate-700 leading-relaxed">
+          {parts.map((part, i) =>
+            regex.test(part) 
+              ? <mark key={i} className="bg-amber-200/70 text-amber-900 rounded px-0.5 font-semibold" id={i === 1 ? "highlighted-evidence" : undefined}>{part}</mark>
+              : part
+          )}
+        </p>
+      );
+    }
+    
+    return <p className="whitespace-pre-wrap font-mono text-sm text-slate-700">{fullText}</p>;
   };
 
   // Scroll to highlight when source viewer opens
