@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Upload, FileText, CheckCircle2, AlertCircle, Plus, Users, Trash2, ArrowRight, Loader2, FileCheck, ClipboardList } from 'lucide-react';
+import { Upload, FileText, CheckCircle2, AlertCircle, Plus, Users, Trash2, ArrowRight, Loader2, FileCheck, ClipboardList, PlusCircle, BookOpen, Hash, Tag } from 'lucide-react';
 import clsx from 'clsx';
 import { evaluateAllBidders, connectEvalStream } from '../api';
 
-export default function BidderManagement({ tenderId, criteria, bidders, setBidders, onEvaluationComplete }) {
+export default function BidderManagement({ tenderId, criteria, setCriteria, bidders, setBidders, onEvaluationComplete }) {
   const [activeTab, setActiveTab] = useState('upload');
   const [bidderName, setBidderName] = useState('');
   const [files, setFiles] = useState([]);
@@ -14,6 +14,8 @@ export default function BidderManagement({ tenderId, criteria, bidders, setBidde
   const [evalProgress, setEvalProgress] = useState('');
   const [progressIndex, setProgressIndex] = useState(0);
   const [selectedCriterion, setSelectedCriterion] = useState(null);
+  const [showAddCriteria, setShowAddCriteria] = useState(false);
+  const [newCriterion, setNewCriterion] = useState({ text: '', type: 'Technical', mandatory: true });
   // Track which bidders have completed evaluation (SSE-driven)
   const [completedBidders, setCompletedBidders] = useState(new Set());
   const eventSourceRef = useRef(null);
@@ -173,9 +175,70 @@ export default function BidderManagement({ tenderId, criteria, bidders, setBidde
                 </div>
                 <p className="text-sm text-slate-600 line-clamp-3" title={c.text}>{c.text}</p>
                 {c.mandatory && <div className="mt-2 text-xs font-semibold text-emerald-600 flex items-center gap-1"><CheckCircle2 size={14}/> Mandatory</div>}
+                {c.source_section && <div className="mt-1 text-xs text-slate-400 flex items-center gap-1"><BookOpen size={12}/> Section {c.source_section}</div>}
               </div>
             ))}
           </div>
+
+          {/* Add Custom Criterion */}
+          {showAddCriteria ? (
+            <div className="mt-6 p-5 bg-white rounded-xl border-2 border-indigo-200 shadow-sm">
+              <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><PlusCircle size={16} className="text-indigo-500"/> Add Custom Criterion</h4>
+              <div className="space-y-3">
+                <textarea
+                  className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-y text-sm"
+                  placeholder="Describe the eligibility criterion..."
+                  rows={2}
+                  value={newCriterion.text}
+                  onChange={(e) => setNewCriterion(prev => ({...prev, text: e.target.value}))}
+                />
+                <div className="flex items-center gap-3">
+                  <select
+                    className="p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    value={newCriterion.type}
+                    onChange={(e) => setNewCriterion(prev => ({...prev, type: e.target.value}))}
+                  >
+                    <option value="Financial">Financial</option>
+                    <option value="Experience">Experience</option>
+                    <option value="Compliance">Compliance</option>
+                    <option value="Technical">Technical</option>
+                  </select>
+                  <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newCriterion.mandatory}
+                      onChange={(e) => setNewCriterion(prev => ({...prev, mandatory: e.target.checked}))}
+                      className="rounded"
+                    />
+                    Mandatory
+                  </label>
+                  <div className="ml-auto flex gap-2">
+                    <button
+                      onClick={() => { setShowAddCriteria(false); setNewCriterion({ text: '', type: 'Technical', mandatory: true }); }}
+                      className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                    >Cancel</button>
+                    <button
+                      disabled={!newCriterion.text.trim()}
+                      onClick={() => {
+                        const customId = `CUSTOM-${criteria.filter(c => c.id?.startsWith('CUSTOM')).length + 1}`;
+                        setCriteria([...criteria, { id: customId, text: newCriterion.text.trim(), type: newCriterion.type, mandatory: newCriterion.mandatory, source_section: 'Manual', sub_conditions: [] }]);
+                        setNewCriterion({ text: '', type: 'Technical', mandatory: true });
+                        setShowAddCriteria(false);
+                      }}
+                      className="px-4 py-1.5 text-sm font-bold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                    >Add Criterion</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAddCriteria(true)}
+              className="mt-4 flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 px-4 py-2 rounded-lg transition-colors"
+            >
+              <PlusCircle size={16} /> Add Custom Criterion
+            </button>
+          )}
         </div>
       </div>
 
@@ -197,12 +260,35 @@ export default function BidderManagement({ tenderId, criteria, bidders, setBidde
                 ✕
               </button>
             </div>
-            <div className="p-8 overflow-y-auto">
-              <h3 className="font-bold text-slate-700 mb-2">Full Requirement Text:</h3>
-              <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{selectedCriterion.text}</p>
+            <div className="p-8 overflow-y-auto space-y-5">
+              <div>
+                <h3 className="font-bold text-slate-700 mb-2">Full Requirement Text:</h3>
+                <p className="text-slate-600 leading-relaxed whitespace-pre-wrap bg-slate-50 p-4 rounded-lg border border-slate-200">{selectedCriterion.text}</p>
+              </div>
               
+              {selectedCriterion.source_section && (
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <BookOpen size={16} className="text-indigo-500"/> <span className="font-semibold">Source:</span> Section {selectedCriterion.source_section} of tender document
+                </div>
+              )}
+
+              {selectedCriterion.sub_conditions && selectedCriterion.sub_conditions.length > 0 && (
+                <div>
+                  <h4 className="font-bold text-slate-700 mb-3 flex items-center gap-2"><Hash size={16} className="text-indigo-500"/> Measurable Sub-Conditions</h4>
+                  <div className="space-y-2">
+                    {selectedCriterion.sub_conditions.map((sc, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-lg">
+                        <Tag size={14} className="text-slate-400 shrink-0"/>
+                        <span className="text-sm font-semibold text-slate-700">{sc.parameter}</span>
+                        <span className="text-xs font-mono bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-100">{sc.operator} {sc.threshold} {sc.unit || ''}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {selectedCriterion.mandatory && (
-                <div className="mt-6 inline-flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg font-bold border border-emerald-200">
+                <div className="inline-flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg font-bold border border-emerald-200">
                   <CheckCircle2 size={18} /> This is a mandatory requirement
                 </div>
               )}

@@ -9,6 +9,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [step, setStep] = useState(1);
   const [tenderData, setTenderData] = useState(null);
+  const [criteria, setCriteria] = useState([]);
   const [bidders, setBidders] = useState([]);
   const [evaluations, setEvaluations] = useState(null);
   const [cartelAlerts, setCartAlerts] = useState([]);
@@ -16,6 +17,7 @@ function App() {
   const resetAll = () => {
     setStep(1);
     setTenderData(null);
+    setCriteria([]);
     setBidders([]);
     setEvaluations(null);
     setCartAlerts([]);
@@ -28,6 +30,7 @@ function App() {
 
   const handleTenderProcessed = (data) => {
     setTenderData(data);
+    setCriteria(data.criteria || []);
     setStep(2);
   };
 
@@ -118,7 +121,8 @@ function App() {
         {step === 2 && tenderData && (
           <BidderManagement
             tenderId={tenderData.tender_id}
-            criteria={tenderData.criteria}
+            criteria={criteria}
+            setCriteria={setCriteria}
             bidders={bidders}
             setBidders={setBidders}
             onEvaluationComplete={(evals, cartels) => {
@@ -132,7 +136,7 @@ function App() {
         {step === 3 && tenderData && evaluations && (
           <ResultsDashboard
             tenderId={tenderData.tender_id}
-            criteria={tenderData.criteria}
+            criteria={criteria}
             evaluations={evaluations}
             setEvaluations={setEvaluations}
             cartelAlerts={cartelAlerts}

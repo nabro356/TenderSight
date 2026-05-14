@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell, ReferenceLine, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ScatterChart, Scatter, ZAxis, CartesianGrid } from 'recharts';
-import { Download, MessageSquare, AlertCircle, ChevronDown, ChevronUp, FileText, FileDown, Scale, Sparkles, X, Search, Check, AlertTriangle, Save, Loader2, CheckCircle, XCircle, Moon, Sun, Users, TrendingUp, ShieldAlert, HelpCircle, Lightbulb } from 'lucide-react';
+import { Download, MessageSquare, AlertCircle, ChevronDown, ChevronUp, FileText, FileDown, Scale, Sparkles, X, Search, Check, AlertTriangle, Save, Loader2, CheckCircle, XCircle, Moon, Sun, Users, TrendingUp, ShieldAlert, HelpCircle, Lightbulb, Trophy, Edit3 } from 'lucide-react';
 import clsx from 'clsx';
 import { chatAboutReport, downloadReportPdf, updateEvaluation } from '../api';
 
@@ -28,12 +28,52 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [savingOverride, setSavingOverride] = useState(false);
+  const [recommendation, setRecommendation] = useState(null);
+  const [overriddenBidder, setOverriddenBidder] = useState('');
+  const [overrideJustification, setOverrideJustification] = useState('');
   const chatEndRef = useRef(null);
 
   const bidders = Object.keys(evaluations);
   const eligible = bidders.filter(b => evaluations[b].overall_status === 'ELIGIBLE').length;
   const notEligible = bidders.filter(b => evaluations[b].overall_status === 'NOT_ELIGIBLE').length;
   const review = bidders.filter(b => evaluations[b].overall_status === 'MANUAL_REVIEW').length;
+
+  // Compute AI recommendation on mount
+  useEffect(() => {
+    const eligibleBidders = bidders.filter(b => evaluations[b].overall_status === 'ELIGIBLE');
+    const cartelBidders = new Set((cartelAlerts || []).flatMap(a => [a.bidder1, a.bidder2]));
+    const cleanBidders = eligibleBidders.filter(b => !cartelBidders.has(b) && !evaluations[b].anomaly_flag);
+    
+    let recommended = null;
+    let reason = '';
+    
+    if (cleanBidders.length > 0) {
+      // L1 rule: lowest financial bid wins
+      const withBids = cleanBidders.filter(b => evaluations[b].financial_bid_numeric || evaluations[b].financial_bid);
+      if (withBids.length > 0) {
+        withBids.sort((a, b) => (evaluations[a].financial_bid_numeric || evaluations[a].financial_bid || Infinity) - (evaluations[b].financial_bid_numeric || evaluations[b].financial_bid || Infinity));
+        recommended = withBids[0];
+        const bidAmount = evaluations[recommended].financial_bid_numeric || evaluations[recommended].financial_bid;
+        reason = `L1 Bidder — Lowest qualified financial bid (Rs. ${Number(bidAmount).toLocaleString('en-IN')}). Meets all eligibility criteria with no fraud flags.`;
+      } else {
+        // No financial bids — rank by eligible count + confidence
+        cleanBidders.sort((a, b) => {
+          const aScore = (evaluations[a].eligible_count || 0) * 100 + (evaluations[a].verdicts?.reduce((s, v) => s + v.confidence, 0) || 0);
+          const bScore = (evaluations[b].eligible_count || 0) * 100 + (evaluations[b].verdicts?.reduce((s, v) => s + v.confidence, 0) || 0);
+          return bScore - aScore;
+        });
+        recommended = cleanBidders[0];
+        reason = `Highest eligibility score (${evaluations[recommended].eligible_count}/${criteria.length} criteria met). No financial bid data available for L1 ranking.`;
+      }
+    } else if (eligibleBidders.length > 0) {
+      recommended = eligibleBidders[0];
+      reason = `Only eligible bidder without disqualification. Note: fraud alerts may apply — manual review recommended.`;
+    }
+    
+    if (recommended) {
+      setRecommendation({ bidder: recommended, reason, isAI: true });
+    }
+  }, []);
 
   const COLORS = ['#6366f1', '#14b8a6', '#f43f5e', '#f59e0b', '#8b5cf6', '#06b6d4']; // Clean, vibrant SaaS palette for white backgrounds
 
@@ -567,28 +607,33 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
                   >
                     ← Back to Evaluation Summary
                   </button>
-                  <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-inner">
-                    <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-100">
-                      <Search className="text-indigo-500" size={20}/>
-                      <h3 className="font-bold text-slate-800">Source Document Viewer</h3>
+                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-lg">
+                    <div className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-slate-100 to-slate-50 border-b border-slate-200">
+                      <FileText className="text-indigo-500" size={18}/>
+                      <h3 className="font-bold text-slate-800 text-sm">Bidder Submission — Source Document</h3>
+                      <span className="ml-auto text-xs font-mono text-slate-400 bg-white px-2 py-0.5 rounded border border-slate-200">
+                        {expandedBidder}
+                      </span>
                     </div>
-                    <div className="bg-slate-50 p-6 rounded-lg border border-slate-200 max-h-[60vh] overflow-y-auto">
-                      {(() => {
-                        const v = evaluations[expandedBidder].verdicts.find(v => v.criterion_id === viewingSourceFor);
-                        const quote = v?.evidence_used?.[0]?.exact_quote;
-                        const value = v?.evidence_used?.[0]?.value;
-                        const reasoning = v?.reasoning;
-                        // Use the best available search term
-                        const searchTerm = (quote && quote !== 'null' && quote !== 'Not found' && quote.length > 5) 
-                          ? quote 
-                          : (value && value !== 'null' && value !== 'Not found' && value.length > 3) 
-                            ? value 
-                            : reasoning;
-                        return renderHighlightedText(
-                          evaluations[expandedBidder].bidder_text_snapshot,
-                          searchTerm
-                        );
-                      })()}
+                    <div className="bg-slate-100 p-6">
+                      <div className="bg-white mx-auto max-w-3xl shadow-md rounded-sm border border-slate-200 p-8 md:p-12 min-h-[40vh] max-h-[60vh] overflow-y-auto" style={{ fontFamily: "'Times New Roman', 'Georgia', serif" }}>
+                        {(() => {
+                          const v = evaluations[expandedBidder].verdicts.find(v => v.criterion_id === viewingSourceFor);
+                          const quote = v?.evidence_used?.[0]?.exact_quote;
+                          const value = v?.evidence_used?.[0]?.value;
+                          const reasoning = v?.reasoning;
+                          // Use the best available search term
+                          const searchTerm = (quote && quote !== 'null' && quote !== 'Not found' && quote.length > 5) 
+                            ? quote 
+                            : (value && value !== 'null' && value !== 'Not found' && value.length > 3) 
+                              ? value 
+                              : reasoning;
+                          return renderHighlightedText(
+                            evaluations[expandedBidder].bidder_text_snapshot,
+                            searchTerm
+                          );
+                        })()}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -613,13 +658,34 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
                         {getStatusBadge(v.status)}
                       </div>
                       
-                      <div className="bg-slate-50 rounded-lg p-5 border border-slate-100 mb-4">
-                        <p className="text-sm text-slate-700 font-medium leading-relaxed mb-3">
+                      <div className="bg-slate-50 rounded-lg p-5 border border-slate-100 mb-4 space-y-3">
+                        <p className="text-sm text-slate-700 font-medium leading-relaxed">
                           <span className="font-bold text-slate-900">AI Reasoning:</span> {v.reasoning}
                         </p>
-                        <p className="text-sm text-slate-600">
-                          <span className="font-bold text-slate-800">Extracted Value:</span> <span className="font-mono bg-white px-2 py-1 rounded border border-slate-200">{v.evidence_used?.[0]?.value || 'N/A'}</span>
-                        </p>
+                        <div className="flex flex-wrap items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-600">Extracted Value:</span>
+                            <span className="font-mono text-sm bg-white px-2 py-1 rounded border border-slate-200 text-indigo-700 font-semibold">{v.evidence_used?.[0]?.value || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-600">Confidence:</span>
+                            <div className="w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
+                              <div 
+                                className={clsx("h-full rounded-full transition-all", v.confidence >= 0.85 ? "bg-green-500" : v.confidence >= 0.65 ? "bg-amber-500" : "bg-red-500")}
+                                style={{ width: `${(v.confidence * 100)}%` }}
+                              />
+                            </div>
+                            <span className={clsx("text-xs font-bold", v.confidence >= 0.85 ? "text-green-600" : v.confidence >= 0.65 ? "text-amber-600" : "text-red-600")}>
+                              {(v.confidence * 100).toFixed(0)}%
+                            </span>
+                          </div>
+                        </div>
+                        {v.evidence_used?.[0]?.exact_quote && v.evidence_used[0].exact_quote !== 'null' && v.evidence_used[0].exact_quote !== 'Not found' && (
+                          <div className="mt-2 text-xs text-slate-500 bg-white p-3 rounded border border-slate-200 italic leading-relaxed">
+                            <span className="font-semibold not-italic text-slate-600">📄 Source Quote: </span>
+                            "{v.evidence_used[0].exact_quote.substring(0, 200)}{v.evidence_used[0].exact_quote.length > 200 ? '...' : ''}"
+                          </div>
+                        )}
                       </div>
 
                       {v.status === 'MANUAL_REVIEW' && (
@@ -657,6 +723,80 @@ export default function ResultsDashboard({ tenderId, criteria, evaluations, setE
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ FINAL RECOMMENDATION ═══ */}
+      {recommendation && (
+        <div className="relative overflow-hidden border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-50 via-white to-teal-50 rounded-[2rem] p-8 shadow-xl shadow-emerald-500/10">
+          <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4"></div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-emerald-600 rounded-2xl text-white shadow-lg shadow-emerald-600/30">
+                <Trophy size={28} />
+              </div>
+              <div>
+                <h3 className="text-2xl font-extrabold text-emerald-800 tracking-tight">Final Recommendation</h3>
+                <p className="text-sm text-emerald-600 font-medium mt-1">
+                  {recommendation.isAI && !overriddenBidder ? 'AI-generated based on L1 procurement rules' : 'Manually selected by reviewer'}
+                </p>
+              </div>
+            </div>
+
+            {/* Recommended Bidder */}
+            <div className="bg-white p-6 rounded-xl border border-emerald-200 shadow-sm mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-extrabold text-2xl">
+                    🏆
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Recommended Bidder</div>
+                    <h4 className="text-xl font-extrabold text-slate-900">{overriddenBidder || recommendation.bidder}</h4>
+                  </div>
+                </div>
+                {getStatusBadge(evaluations[overriddenBidder || recommendation.bidder]?.overall_status)}
+              </div>
+              <p className="mt-4 text-sm text-slate-600 leading-relaxed bg-emerald-50/50 p-3 rounded-lg border border-emerald-100">
+                <span className="font-semibold text-emerald-800">Reasoning: </span>
+                {overriddenBidder && overrideJustification ? overrideJustification : recommendation.reason}
+              </p>
+            </div>
+
+            {/* Override */}
+            <details className="group">
+              <summary className="cursor-pointer flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
+                <Edit3 size={16} /> Override Recommendation (Reviewer)
+              </summary>
+              <div className="mt-4 p-5 bg-white rounded-xl border border-emerald-200 space-y-3">
+                <div>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 block">Select Bidder</label>
+                  <select
+                    className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                    value={overriddenBidder}
+                    onChange={(e) => setOverriddenBidder(e.target.value)}
+                  >
+                    <option value="">AI Recommendation: {recommendation.bidder}</option>
+                    {bidders.map(b => (
+                      <option key={b} value={b}>{b} ({evaluations[b].overall_status})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 block">Justification</label>
+                  <textarea
+                    className="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none resize-y"
+                    rows={2}
+                    placeholder="Provide reasoning for overriding the AI recommendation..."
+                    value={overrideJustification}
+                    onChange={(e) => setOverrideJustification(e.target.value)}
+                  />
+                </div>
+              </div>
+            </details>
           </div>
         </div>
       )}
