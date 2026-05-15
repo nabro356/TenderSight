@@ -35,7 +35,7 @@ def detect_financial_anomalies(evaluations: dict, api_key: str = None) -> dict:
     extraction_payload = {}
     for bidder, eval_data in evaluations.items():
         # Only send the extracted values to save context
-        evidence = [v.get("evidence_used", [{}])[0].get("value", "") for v in eval_data.get("verdicts", [])]
+        evidence = [v.get("evidence_value", "") for v in eval_data.get("verdicts", [])]
         extraction_payload[bidder] = evidence
         
     messages = [
